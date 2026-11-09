@@ -369,8 +369,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix5: job_flipfix5_units (two serverless rows) and job_flipfix5 (one live row), all three
 # collected before the quick exit: DQ=+3, DF=+3. Maintainer updates 946/963 -> 949/966 and adds
 # the three labels to the label fixture.
-EXPECT_QUICK=1212
-EXPECT_FULL=1229                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=1325
+EXPECT_FULL=1342                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
 # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
@@ -1041,6 +1041,11 @@ job_body(){
     wave14_eof_data) job_wave14_eof_data;;
     rootcompat) job_rootcompat all;;
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
+    tornread-*) job_tornread "$name";;
+    tornhold-progress-*) job_tornhold_progress "$name";;
+    tornhold-wait-*) job_tornhold_progress "$name";;
+    tornhold-flip-*) job_tornhold_progress "$name";;
+    tornhold-*) job_tornhold "$name";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     scriptfix4-*) job_scriptfix4 "${name#scriptfix4-}";;
@@ -1049,6 +1054,7 @@ job_body(){
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
+    aofblock-*) job_aofblock "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
     atomwake-live-*) job_atomwake_live "$name";;
     blockwake-live-*) job_blockwake_live "$name";;
@@ -1186,6 +1192,17 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
   JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement)
+  for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
+    for TR_ATOMIC in 0 1; do
+      JOB_NAMES+=("tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC")
+      JOB_NAMES+=("tornhold-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC")
+    done
+  done; done
+  JOB_NAMES+=(tornhold_units)
+  for TH_MODE in 1s 2s; do for TH_ENGINE in uring epoll; do
+    JOB_NAMES+=("tornhold-progress-$TH_MODE-$TH_ENGINE" "tornhold-wait-$TH_MODE-$TH_ENGINE")
+  done; done
+  for TH_ENGINE in uring epoll; do JOB_NAMES+=("tornhold-flip-2s-$TH_ENGINE"); done
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   JOB_NAMES+=(cmdfix2-geo cmdfix2-scores cmdfix2-hll cmdfix2-lcs cmdfix2-channels cmdfix2-xsetid)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
@@ -1205,6 +1222,7 @@ plan_jobs(){
   fi
   JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   JOB_NAMES+=(wave14_functions)
+  JOB_NAMES+=(aofblock-epoll aofblock-uring)
   JOB_NAMES+=(netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot)
   for section in cap tracking blocked shutdown dirty; do JOB_NAMES+=("scriptfix4-$section"); done
   local atomic mode section slot FM FR FO FQ FF
@@ -1233,7 +1251,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(wave15_stream wave15_flip_eof wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
+  JOB_NAMES+=(wave15_stream wave15_flip_eof wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockrace blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
@@ -2155,7 +2173,8 @@ job_persistfix_units(){
 # PS1/PS2/PS14: one row, collected BEFORE the quick-tier exit. EXPECT stays owner-owned.
 row_begin "AOF publication/shutdown witnesses + negative controls"
 if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_checks.py \
-    >"$TMPDIR/persistfix-unit.log" 2>&1; then
+    >"$TMPDIR/persistfix-unit.log" 2>&1 \
+    && taskset -c "$CORES" ./build/persistfix-unit blocking >>"$TMPDIR/persistfix-unit.log" 2>&1; then
   ok "AOF publication/shutdown witnesses + negative controls"
 else
   bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
@@ -3153,6 +3172,102 @@ job_moverfix(){
     shutdown_clean || rc=1
     [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{unit,live}-$mode-$engine-$databases-*.log"
   done; done; done
+}
+
+job_tornread(){
+  local prefix mode read_local engine atomic boot_fn=boot writer=mset shape label effective_reorder=0
+  IFS=- read -r prefix mode read_local engine atomic <<< "$1"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  [ "$mode" != 1s ] || effective_reorder=${GATE_TORNREAD_REORDER:-0}
+  [ "$atomic" != 0 ] || writer=exec
+  for shape in pipe seq; do
+    label="tornread $shape ($mode read-local $read_local $engine atomic $atomic)"
+    row_begin "$label" "requested_reorder=${GATE_TORNREAD_REORDER:-0} effective_reorder=$effective_reorder"
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+        --reorder "${GATE_TORNREAD_REORDER:-0}" \
+        --read-local "$read_local" --key-lb 0 --client-lb 0 --flip-auto 0 \
+        --enable-debug-command yes &&
+      py tests/tornread.py --port "$PORT" --label "$1-$shape" --seconds 15 \
+        --max-violations 1 --geometry debug --require-atomic "$atomic" \
+        --require-mode "$mode" --require-read-local "$read_local" --require-reorder "$effective_reorder" \
+        --read-mode "$shape" --writer-kind "$writer" --json "$TMPDIR/$shape.json" \
+        >"$TMPDIR/$shape.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/$shape.log and $SRVLOG"
+    fi
+    stop
+  done
+}
+
+job_tornhold(){
+  local prefix mode read_local engine atomic boot_fn=boot writer=mset shape label effective_reorder=0
+  local control=()
+  IFS=- read -r prefix mode read_local engine atomic <<< "$1"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  [ "$mode" != 1s ] || effective_reorder=${GATE_TORNREAD_REORDER:-0}
+  [ "$atomic" != 0 ] || writer=exec
+  for shape in getmget getmget-seq; do
+    label="tornhold $shape ($mode read-local $read_local $engine atomic $atomic)"
+    row_begin "$label" "requested_reorder=${GATE_TORNREAD_REORDER:-0} effective_reorder=$effective_reorder"
+    control=(); [ "$shape" != getmget-seq ] || control=(--getmget-sequential)
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+        --reorder "${GATE_TORNREAD_REORDER:-0}" \
+        --read-local "$read_local" --key-lb 0 --client-lb 0 --flip-auto 0 \
+        --enable-debug-command yes &&
+      py tests/tornread.py --port "$PORT" --label "$1-$shape" --seconds 15 \
+        --max-violations 1 --geometry debug --require-atomic "$atomic" \
+        --require-mode "$mode" --require-read-local "$read_local" --require-reorder "$effective_reorder" \
+        --read-mode getmget --depth 1 --order ab --lag-noise 2 --readers 4 \
+        --writer-kind "$writer" "${control[@]}" --json "$TMPDIR/$shape.json" \
+        >"$TMPDIR/$shape.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/$shape.log and $SRVLOG"
+    fi
+    stop
+  done
+}
+
+job_tornhold_units(){
+  row_begin "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+  if pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tornread-unit build/tornhold-db0-unit \
+      >"$TMPDIR/build.log" 2>&1 &&
+      taskset -c "$CORES" build/tornread-unit >"$TMPDIR/unit.log" 2>&1 &&
+      taskset -c "$CORES" build/tornhold-db0-unit >>"$TMPDIR/unit.log" 2>&1; then
+    ok "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+  else
+    bad "tornhold generation/bucket/parser/WB lifetimes (normal and db0)" "see $TMPDIR/{build,unit}.log"
+  fi
+}
+
+job_tornhold_progress(){
+  local prefix kind mode engine boot_fn=boot label hold_binary="$CANDIDATE_BINARY" ptrace_binary='' window_ok=1
+  IFS=- read -r prefix kind mode engine <<< "$1"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  label="tornhold $kind cleanup progress ($mode $engine atomic 0)"
+  row_begin "$label"
+  if [ "$kind" = progress ]; then
+    # TCP backlog alone cannot prove a continuously nonempty ROB. Pair the live
+    # cleanup counters with the exact sliding-window schedule; the override is
+    # the matching unit linked from an isolated negative-control image's objects.
+    taskset -c "$CORES" "${GATE_TORNHOLD_PROGRESS_UNIT:-build/tornread-unit}" --progress \
+        >"$TMPDIR/window.log" 2>&1 || window_ok=0
+  fi
+  if [ "$kind" = flip ]; then
+    hold_binary="$PWD/tests/tornhold_progress.py"
+    ptrace_binary="$CANDIDATE_BINARY"
+  fi
+  if [ "$window_ok" = 1 ] &&
+      TORNHOLD_PTRACE_BINARY="$ptrace_binary" "$boot_fn" "$hold_binary" --net-io "$engine" --atomic 0 --read-local 0 \
+      --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes &&
+      py tests/tornhold_progress.py --port "$PORT" --case "$kind" --seconds 30 \
+      --json "$TMPDIR/progress.json" >"$TMPDIR/progress.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/{window,progress}.log and $SRVLOG"
+  fi
+  stop
 }
 
 job_atomic_batteries(){
@@ -4932,6 +5047,29 @@ job_blockfix2(){
   else bad "blockfix2 BLOCK-SERVE-REFUSED-DROP"; fi
 }
 
+# blockrace finding (a): deterministic two-offer and no-offer completion schedules via the
+# TOMO_BLOCKING_COMPLETION_UNIT hook (compiled out of production). Two counted rows, each run across
+# 1s/2s and both namespaces; each FAILs on PRE and PASSes on the fix. The (b) read-after-Done
+# use-after-free is an ASAN witness run outside counted rows. Landing delta DQ=DF=+2; EXPECT and the
+# label fixture remain maintainer-owned.
+job_blockrace(){
+  local failed target mode unitdir case
+  unitdir=$(dirname "$CANDIDATE_BINARY")
+  for case in two-offer no-offer; do
+    row_begin "blockrace BLOCK-COMPLETION-${case}"
+    failed=0
+    for target in blockrace-unit blockrace-db0-unit; do
+      if [ "$CANDIDATE_BINARY" = "$PWD/build/tomokv" ]; then unit_ready "$target" || failed=1; fi
+      for mode in 1s 2s; do
+        taskset -c "$CORES" "$unitdir/$target" "$mode" "$case" \
+            >"$TMPDIR/$target-$mode-$case.log" 2>&1 || failed=1
+      done
+    done
+    if [ "$failed" = 0 ]; then ok "blockrace BLOCK-COMPLETION-${case}"
+    else bad "blockrace BLOCK-COMPLETION-${case}" "see $TMPDIR/blockrace-*-${case}.log"; fi
+  done
+}
+
 job_blockfix_structure(){
   row_begin "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
   compat3_case blockfix structure && ok "blockfix CC4.19 XINFO structural counts vs Redis 7.4" \
@@ -5660,6 +5798,22 @@ python3 tests/pipeorder.py $PORT 400 >$TMPDIR/gate-pipeorder.txt 2>&1 \
     && ok "pipelined same-conn program order (400 rolls)" \
     || bad "pipelined same-conn program order" "see $TMPDIR/gate-pipeorder.txt"
 stop
+}
+
+job_aofblock(){
+  local NET_IO=${1##*-} AOF_BLOCK_MODE AOF_BLOCK_CASE
+  for AOF_BLOCK_MODE in 1s 2s; do
+    for AOF_BLOCK_CASE in blpop_now blpop_wake brpop blmpop bzpopmin bzpopmax bzmpop xreadgroup_now xreadgroup_wake; do
+      row_begin "aofblock $AOF_BLOCK_CASE ($AOF_BLOCK_MODE, $NET_IO)"
+      py tests/aofblock.py --binary "$CANDIDATE_BINARY" --mode "$AOF_BLOCK_MODE" \
+          --case "$AOF_BLOCK_CASE" --net-io "$NET_IO" --cores "$CORES" --ratio "$GATE_RATIO" \
+          --port "$PORT" --artifacts "$TMPDIR/aofblock" \
+          >"$TMPDIR/aofblock-$AOF_BLOCK_CASE-$AOF_BLOCK_MODE.log" 2>&1 \
+          && ok "aofblock $AOF_BLOCK_CASE ($AOF_BLOCK_MODE, $NET_IO)" \
+          || bad "aofblock $AOF_BLOCK_CASE ($AOF_BLOCK_MODE, $NET_IO)" \
+                 "see $TMPDIR/aofblock-$AOF_BLOCK_CASE-$AOF_BLOCK_MODE.log"
+    done
+  done
 }
 
 job_aof(){
@@ -6926,6 +7080,11 @@ job_production_units(){
   for target in blockfix2-unit blockfix2-db0-unit; do
     make -f Makefile -f tools/blockfix2.mk -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/blockrace.mk \
+      -j"$BUILD_JOBS" build/blockrace-unit build/blockrace-db0-unit >"$TMPDIR/blockrace-build.log" 2>&1
+  for target in blockrace-unit blockrace-db0-unit; do
+    make -f Makefile -f tools/blockrace.mk -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
+  done
   return 0
 }
 job_multidb(){
@@ -7005,11 +7164,12 @@ job_dependencies(){
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
-    wave15_stream|wave15_flip_eof|wave15_idle|tls|blockfix_registry|slotless|blockfix2) echo 'release production_units';;
+    wave15_stream|wave15_flip_eof|wave15_idle|tls|blockfix_registry|slotless|blockfix2|blockrace) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|exec1s|txnorder_fifo|txnorder_chain|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement|reorder_bounds|rob_portable) echo production_units;;
+    tornhold-progress-*|tornhold-wait-*|tornhold-flip-*) echo 'release tornhold_units';;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -7238,6 +7398,22 @@ collect_job readonly
 
 collect_job release_batteries
 
+# Sixteen boots, two rows each, collected BEFORE the quick exit: DQ=DF=+32.
+# EXPECT and the label fixture remain maintainer-owned.
+for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
+  for TR_ATOMIC in 0 1; do
+    collect_job "tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC"
+    collect_job "tornhold-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC"
+  done
+ done; done
+# tornhold: +32 GET/MGET rows above, +1 directed row and +10 liveness rows here.
+# All collection sites precede the quick exit: DQ=DF=+43 beyond tornread.
+collect_job tornhold_units
+for TH_MODE in 1s 2s; do for TH_ENGINE in uring epoll; do
+  collect_job "tornhold-progress-$TH_MODE-$TH_ENGINE"
+  collect_job "tornhold-wait-$TH_MODE-$TH_ENGINE"
+done; done
+for TH_ENGINE in uring epoll; do collect_job "tornhold-flip-2s-$TH_ENGINE"; done
 collect_job atomic_batteries
 collect_job moverfix
 # hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).
@@ -7261,6 +7437,8 @@ collect_job blockfix_structure
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job blockfix4
 collect_job blockfix2
+# blockrace: two completion-race rows before the quick exit; DQ=DF=+2, EXPECT maintainer-owned.
+collect_job blockrace
 collect_job dispatch_arity
 collect_job dispatch_errors
 collect_job dispatch_children
@@ -7418,6 +7596,7 @@ collect_job flipfix7_tls
 collect_job atomic_floor
 
 for NET_IO in epoll uring; do collect_job "aof-$NET_IO"; done
+for NET_IO in epoll uring; do collect_job "aofblock-$NET_IO"; done
 
 collect_job aof_frame
 

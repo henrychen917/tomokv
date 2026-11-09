@@ -1,6 +1,7 @@
-// Owner doorbell helpers included inside ExLoopT by core/ex_loop.h, in the
-// translation units that instantiate it (main.cc, genthread.cc, rl2s.cc and
-// reorder.cc). A fused IO rotation has two extra owner-service opportunities;
+// Owner doorbell helpers included textually inside ExLoopT by core/ex_loop.h.
+// Every translation unit including ex_loop.h directly or through io_loop.h compiles
+// them; fused_owner_turn is instantiated only by the Fused, non-SplitLocal IO loops
+// in genthread.cc and reorder.cc. A fused IO rotation has two extra owner-service opportunities;
 // they use the same admission, batching and execution protocol as its full pass.
 // Producers release-store runnable; the physical owner acquire-clears it before
 // service so a concurrent arrival remains visible at the next boundary.

@@ -1,6 +1,8 @@
-// Optional connection-teardown diagnostics. No code/storage in ordinary builds.
-// Build with -DTOMO_CONNRESET_TRACE and query DEBUG CLOSE-STATS. All writes are
-// on failure/teardown paths; no Client/ThreadCtx/Op fields or request-path probes.
+// Optional connection-teardown diagnostics included by io_loop.h and used by DEBUG CLOSE-STATS.
+// TOMO_CONNRESET_TRACE gates all code/storage here. The mutex protects the reason-count map and
+// diagnostic output; callers supply a valid Client while reading its fields. Calls occur on
+// failure/teardown paths, without adding Client/ThreadCtx/Op fields or request-path probes.
+
 #pragma once
 #ifdef TOMO_CONNRESET_TRACE
 #include <cstdio>
@@ -14,6 +16,9 @@ namespace tomo::connreset {
 inline std::mutex mutex;
 inline std::map<std::string, uint64_t> counts;
 
+// Contract: The connection's IO owner supplies a valid Client on teardown/failure paths. mutex
+// serializes the shared map and stderr output, not the Client itself. Map/string allocation may
+// throw; fprintf failure is not returned. This is diagnostic code under TOMO_CONNRESET_TRACE.
 inline void note(const Client& client, uint32_t owner, const char* event,
                  std::source_location site = std::source_location::current(), int result = 0) {
     std::lock_guard guard(mutex);

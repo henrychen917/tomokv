@@ -1,0 +1,209 @@
+{
+  "class": "Compact",
+  "methods": [
+    {
+      "name": "size",
+      "body_tokens": 5,
+      "body_sha256": "bd9b1d83882d3b3422bd301e5d5924e4fa5aec8e56e5d9ca89ae81dd0d825e28"
+    },
+    {
+      "name": "payload_bytes",
+      "body_tokens": 5,
+      "body_sha256": "11e2730b6c3a3cd0c93a3529a677df90003faac064775d0ccf6a8579e495a538"
+    },
+    {
+      "name": "encoded_bytes",
+      "body_tokens": 7,
+      "body_sha256": "818989ca1b59013e09529ea9669a864358c5b6a9d55c6eded1d73f9df910b3d9"
+    },
+    {
+      "name": "logical",
+      "body_tokens": 9,
+      "body_sha256": "896ff85969f62de03923e4fa76c402951b41659dfa62e13b1a2d033195fc58c2"
+    },
+    {
+      "name": "capacity_bytes",
+      "body_tokens": 46,
+      "body_sha256": "74217221402dead7d8a1ddee9528b74bdf203d7a3d03091bf7a92c6ac2ab46f5"
+    },
+    {
+      "name": "empty",
+      "body_tokens": 7,
+      "body_sha256": "db511f7eb605a05123dbb31befc77b422930f06b42895b9254a411db47e609f7"
+    },
+    {
+      "name": "data",
+      "body_tokens": 11,
+      "body_sha256": "128362d343712c90e9029c88cf96cb39bdba129ca89cf8bdd7db5de105e74ae7"
+    },
+    {
+      "name": "entry_encoded_size",
+      "body_tokens": 10,
+      "body_sha256": "ffb87dfaa52b41c78ab8fd27f5e5d7f7ecc0c973289e8f6d1711e20e2b4ea740"
+    },
+    {
+      "name": "begin",
+      "body_tokens": 12,
+      "body_sha256": "592fb08fa7b63f6ab53e08db2eee70f645a960ebcc191304ba9fa172c1d5085c"
+    },
+    {
+      "name": "end",
+      "body_tokens": 14,
+      "body_sha256": "5eeacd11b005bab79f233a10ebec37828c9525260a3675f423fe6cf250693de7"
+    },
+    {
+      "name": "at",
+      "body_tokens": 84,
+      "body_sha256": "dea2113101b4b00b7cadcd3fcf6188a80d8c17c1104b2771c3b34c931039c7bf"
+    },
+    {
+      "name": "first",
+      "body_tokens": 10,
+      "body_sha256": "eeca1bdab4121e1ab33b22a96cddf59ce2bf356de45d8de636e4fc3ec1a3e761"
+    },
+    {
+      "name": "last",
+      "body_tokens": 14,
+      "body_sha256": "9d4c6355023ec13dd504d1d5ff8af81d542dff88c941eaed48f36852990ca444"
+    },
+    {
+      "name": "next",
+      "body_tokens": 59,
+      "body_sha256": "206a3916a4aaa1ff7ba4a0e2640c5551ff96e8fdd9cde967e2d049271cf7efda"
+    },
+    {
+      "name": "at_known_offset",
+      "body_tokens": 24,
+      "body_sha256": "e4a30cca44cc9fb023ca2600b94b067f72b1004062fbc6917e9d99013c5e0721"
+    },
+    {
+      "name": "append",
+      "body_tokens": 127,
+      "body_sha256": "75a51e05bd9742040eee917365ec481bf10f4c0d1a1319c4d13c469674f101f9"
+    },
+    {
+      "name": "prepend",
+      "body_tokens": 127,
+      "body_sha256": "cb5fa77260f676a93a037ad314c7b5c0a8e8c5115c055abe4b6bdf7b75db6a5e"
+    },
+    {
+      "name": "insert",
+      "body_tokens": 259,
+      "body_sha256": "7d63971cc1521720ef233087cee28afb45c63d7d9bf2913e870ef5c23ee0ac4f"
+    },
+    {
+      "name": "replace",
+      "body_tokens": 296,
+      "body_sha256": "7ef28bc294cef772349f9fece96872cb1488ff20cb857784ec0c3e31396dd433"
+    },
+    {
+      "name": "insert_before",
+      "body_tokens": 16,
+      "body_sha256": "05ff738b1ec5ab9d6d449f6658dfc8ae69c4008826f19cbf902ef2f9a562e40a"
+    },
+    {
+      "name": "insert_after",
+      "body_tokens": 18,
+      "body_sha256": "e5ba9d6702f611f9ed884dc2c8ed4de21451b2063e0c30420f75cb8c0b283715"
+    },
+    {
+      "name": "erase",
+      "body_tokens": 144,
+      "body_sha256": "451c80e418791e3d41d7cedf43839f8aa36ab59eeaf315f7552feb8331f5a313"
+    },
+    {
+      "name": "pop_front",
+      "body_tokens": 62,
+      "body_sha256": "e06fb57c57dab8cd4f735a4ab005d007a09c035d7c8c911eb420a685ff8a1470"
+    },
+    {
+      "name": "pop_back",
+      "body_tokens": 58,
+      "body_sha256": "a55937fbcf4b57fa4979bdc8ce41df981006f9e3a23994dbd28fb291b84c7033"
+    },
+    {
+      "name": "erase_range",
+      "body_tokens": 224,
+      "body_sha256": "c0b03d556a793df5ef3b0d2a013169c92fab49e9e04406d2dc645595a00c0c12"
+    },
+    {
+      "name": "clear",
+      "body_tokens": 48,
+      "body_sha256": "8b727ff11a90e74da52116629c0f0de40798ec5fccd164a50f439c0f822cb216"
+    },
+    {
+      "name": "at_offset",
+      "body_tokens": 10,
+      "body_sha256": "c6fb1dcfca171da8eecc5bab4c3a7235459e08ed54c64dbd29d0c48266c1c055"
+    },
+    {
+      "name": "varint_size",
+      "body_tokens": 25,
+      "body_sha256": "11b815cf7bb45ab7a513956d5cc0aa1eeed6c7305fd8be9e513caa6a14b75cf5"
+    },
+    {
+      "name": "encode_varint",
+      "body_tokens": 43,
+      "body_sha256": "2ec00f070a8a3708e46180f2a1bb2089a43a39e7c1c2a469757ee34012341563"
+    },
+    {
+      "name": "offset_slot",
+      "body_tokens": 27,
+      "body_sha256": "078715376664cb3fe3d20b3ab1ee19d269e2b9ff09ecc6fb77878c3b4e48c7af"
+    },
+    {
+      "name": "offset_at",
+      "body_tokens": 11,
+      "body_sha256": "2a06b513b7f43d62d726e7003d42b8c2a0360240ccce56ccf0f47c71c579acc4"
+    },
+    {
+      "name": "offset_set",
+      "body_tokens": 12,
+      "body_sha256": "1252a968c86134d54b83e2bf820bd163a3ea7b8e7076c82b62e9228541dfc52c"
+    },
+    {
+      "name": "ensure_offset_space",
+      "body_tokens": 254,
+      "body_sha256": "9685c457ffcaee41c5d8a980471006594b3a863b50c349aa7e85c75812b2e7fa"
+    },
+    {
+      "name": "offset_push_back",
+      "body_tokens": 18,
+      "body_sha256": "0ddaf98e9e0c54f22d5bc8f73e5dc794630ea62002a7091b8cc0acf629c2b764"
+    },
+    {
+      "name": "offset_push_front",
+      "body_tokens": 41,
+      "body_sha256": "f5c6d93a6aa0b38572701248d4ab047f7edbe0d6d471236d5293668fe0fbc0ef"
+    },
+    {
+      "name": "offset_pop_front",
+      "body_tokens": 29,
+      "body_sha256": "e4d528e1d45ca222d194245c9f567439a59958caeab22af46f828a76f4355954"
+    },
+    {
+      "name": "ensure_space",
+      "body_tokens": 404,
+      "body_sha256": "a254c6539fe7aaedc41fd4109e21ba987e2fc7401b43aac254e147d6c9228eda"
+    },
+    {
+      "name": "insert_at",
+      "body_tokens": 273,
+      "body_sha256": "a1ce6e7c4fbbb4139362d7ea5e1acb489db7aae8242d84785ae7959460f99133"
+    },
+    {
+      "name": "decode",
+      "body_tokens": 172,
+      "body_sha256": "e3507af3dd6a11b9a08f8e697870f63dd4b7659c364c3e6d5d06ad1add4083d0"
+    },
+    {
+      "name": "decode",
+      "body_tokens": 183,
+      "body_sha256": "7c04fd813f996cc059f5c45531043d7a1ca7f0292cea8e251876e3b0ebc87841"
+    }
+  ],
+  "body_tokens_preserved": true,
+  "formatted_body_tokens_preserved": true,
+  "binary_result": "IDENTICAL (11167504 bytes after stripping)",
+  "disposition": "Reverted to satisfy exact per-file preprocessing-token equality; no source-token exception inferred."
+}

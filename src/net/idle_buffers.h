@@ -1,4 +1,8 @@
-// Connection-buffer reclamation on the owner cron, never on a request/retire path.
+// Connection-buffer reclamation policy used by IoLoop::client_buffer_cron.
+// Reclamation runs only on that cold cron, never on a request/retire path; forget also runs at
+// close and migration.
+// Read-buffer relocation requires ROB quiescence and no kernel receive pointer; output
+// reclamation also excludes in-flight sends and the caller's OpenSSL plaintext reservation.
 #pragma once
 #include "conn.h"
 #include <algorithm>
@@ -14,6 +18,10 @@
 
 namespace tomo {
 
+// Per-IoLoop peak samples keyed by client id; the connection owner calls visit/forget.
+// Sampling and shrinking are local; the relaxed last_purge_ms_ CAS coalesces allocator purges
+// across loops, without publishing buffer state. Allocation of a new peak entry can throw;
+// failed buffer reallocations retain their old allocations.
 class IdleBuffers {
     // Redis 7.4 clientsCronResizeQueryBuffer / clientsCronResizeOutputBuffer:
     // 4 KiB spare, >2 seconds idle, 32 KiB active-query threshold, half-capacity
@@ -51,9 +59,11 @@ public:
 #endif
     }
 
-    // Returns true only if the read allocation needs its io_uring pointer fence.
-    // Capacity growth is itself a conservative peak witness. Sampling that and
-    // existing cursors avoids introducing a peak store on each receive/reply.
+    // Sample peaks and shrink unused allocations on the connection owner's cron pass. The caller
+    // supplies receive/OpenSSL pins; ROB quiescence additionally fences worker argv/direct replies.
+    // Return true to request cancellation of a pinned receive, leaving its allocation in place.
+    // A failed realloc preserves storage; peak-map insertion can throw. No cross-thread publication
+    // occurs here. Capacity growth and cursors capture peaks without per-receive/reply peak stores.
     [[gnu::noinline, gnu::cold]] bool visit(Client& c, uint64_t now_ms, bool read_pinned,
                                             bool output_pinned) {
         if (c.closing() || c.dead()) {
@@ -123,7 +133,7 @@ public:
                     b.len_ = 0;
                 }
                 reclaimed_ = true;
-                if (send) c.wsent_ = 0;  // the old, fully sent buffer retained a stale size/offset
+                if (send) c.wsent_ = 0;  // reset the fully sent buffer's offset after shrinking
                 p.output_cap[i] = b.cap();
             }
             if (now_ms - p.output_reset_ms >= 5000) p.output[i] = used;

@@ -1,4 +1,8 @@
-// Redis 7.4 config.c updateHZ and server.c serverCron/clientsCron.
+// Redis-compatible hz parsing and dynamic client-cron cadence, shared by configuration and
+// Server. Parsing accepts canonical nonnegative integers and clamps the stored rate to 1..500.
+// The configured rate and dynamic flag are independent relaxed atomics, not a paired snapshot.
+// Reference behavior: Redis 7.4 config.c updateHZ and server.c serverCron/clientsCron.
+
 #pragma once
 #include <algorithm>
 #include <atomic>
@@ -9,6 +13,10 @@
 #include "../base/slice.h"
 
 namespace tomo {
+// Contract: Server owns this state; configuration setters store atomic values and IO cron/INFO
+// read effective(). Callers must keep configured in 1..500, as parse does, to make division
+// valid. No payload is published with the relaxed loads. Parse failure leaves value untouched
+// and returns an error string; computing the cadence neither allocates nor waits.
 struct ClientHz {
     static constexpr uint32_t kDefault = 10, kMin = 1, kMax = 500;
     static constexpr uint32_t kClientsPerTick = 200;

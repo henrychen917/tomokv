@@ -39,6 +39,7 @@ struct PersistFixTest {
     static void rewriting(Server& server, bool active) {
         server.aof().rewrite_in_progress_.store(active);
     }
+    static void recording(Server& server, bool active) { server.aof().recording_.store(active); }
 };
 struct CoreConcurrencyTest {
     using Phase = SnapshotManager::Phase;
@@ -46,7 +47,7 @@ struct CoreConcurrencyTest {
 
     static void phase(Server& server, Phase value) { server.snapshot().phase_.store(value); }
 
-    static void join(bool persistence, bool hang, bool rewrite) {
+    static void join(bool persistence, bool hang, bool rewrite, bool aof = false) {
         Server server;
         auto& map = server.databases();
         require(map.bind_workers(8, &server), "eight supervisor participants");
@@ -54,7 +55,9 @@ struct CoreConcurrencyTest {
         for (unsigned i = 0; i < 8; ++i) lives.push_back(std::make_unique<Lifetime>(map, i));
         std::vector<std::thread> workers(8);  // no threads: drive lifetime edges explicitly
         if (persistence) {
-            if (rewrite)
+            if (aof)
+                PersistFixTest::recording(server, true);
+            else if (rewrite)
                 PersistFixTest::rewriting(server, true);
             else
                 phase(server, Phase::Capture);
@@ -71,6 +74,7 @@ struct CoreConcurrencyTest {
             if (!hang && elapsed >= 7'000'000'000ull) {
                 phase(server, Phase::Idle);
                 PersistFixTest::rewriting(server, false);
+                PersistFixTest::recording(server, false);
             }
             if (!hang && elapsed >= 8'000'000'000ull) lives.clear();
         };
@@ -81,7 +85,7 @@ struct CoreConcurrencyTest {
         clock_hook = {};
         clock_step = clock_ns = 0;
         std::printf("shutsave join %s: PASS (8 s virtual completion, old bound 2700 ms)\n",
-                    rewrite ? "rewrite" : "snapshot");
+                    aof ? "AOF final sync" : rewrite ? "rewrite" : "snapshot");
     }
 
     static void retire(bool hang) {
@@ -339,10 +343,10 @@ int main(int argc, char** argv) {
             "select join, rewrite, hang, hung-worker, retire, retire-hang, save, or bgsave");
     const std::string selection = argv[1];
     if (selection == "join" || selection == "rewrite" || selection == "hang" ||
-        selection == "hung-worker")
+        selection == "hung-worker" || selection == "aof" || selection == "aof-hang")
         CoreConcurrencyTest::join(selection != "hung-worker",
-                                  selection == "hang" || selection == "hung-worker",
-                                  selection == "rewrite");
+                                  selection == "hang" || selection == "hung-worker" || selection == "aof-hang",
+                                  selection == "rewrite", selection == "aof" || selection == "aof-hang");
     else if (selection == "retire" || selection == "retire-hang")
         CoreConcurrencyTest::retire(selection == "retire-hang");
     else if (selection == "boundary")

@@ -1,0 +1,55 @@
+{
+  "method": "physical lines carrying tokens from tools/source_tokens.py; comments and blanks excluded",
+  "functions_over_50_token_lines_or_150_physical_lines": [
+    {
+      "file": "src/base/numeric.h",
+      "name": "grisu2_digits",
+      "line": 177,
+      "end": 258,
+      "nloc": 66,
+      "physical": 82
+    },
+    {
+      "file": "src/base/numeric.h",
+      "name": "redis_double_text",
+      "line": 294,
+      "end": 381,
+      "nloc": 80,
+      "physical": 88
+    },
+    {
+      "file": "src/base/topology.h",
+      "name": "declare",
+      "line": 50,
+      "end": 102,
+      "nloc": 52,
+      "physical": 53
+    },
+    {
+      "file": "src/store/flush.cc",
+      "name": "atomic_flush_erase",
+      "line": 261,
+      "end": 332,
+      "nloc": 63,
+      "physical": 72
+    },
+    {
+      "file": "src/store/flush.cc",
+      "name": "atomic_resolve_range",
+      "line": 351,
+      "end": 524,
+      "nloc": 134,
+      "physical": 174
+    }
+  ],
+  "large_classes": [
+    {
+      "file": "src/store/typeval.h",
+      "name": "Compact",
+      "start": 79,
+      "end": 549,
+      "member_physical": 391,
+      "members": 45
+    }
+  ]
+}

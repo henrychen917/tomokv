@@ -3,12 +3,16 @@
 // latency_tracking.cc also supplies cold member definitions. ex_execute.inc supplies task bodies
 // and ex_txn_chain.inc supplies transaction retry members at fixed points inside ExLoopT.
 //
-// Each active executor alone writes its owned shards. Routing is rechecked before store access,
+// Each active executor alone mutates its owned shards' data and indexes; read-local readers
+// perform approximate foreign access accounting (eviction-meta CAS and idle-clock touch;
+// see note_local_read_access). Routing is rechecked before store access,
 // and no owner work follows an ExDrain acknowledgement until ownership is installed. Read-local
 // captures stay within a QSBR rotation and use copy/validate/demote without reader retries.
 // Release Done publishes replies to the connection's IO owner, which retires and sends them.
-// Ready masks are hints: idle sweeps inspect queue state before the blocked-flag/recheck/wait
-// handshake. The executor ring carries wakeups and persistence work, not socket sends.
+// Inbound task notify masks are hints: idle sweeps inspect queue state without them before
+// the blocked-flag/recheck/wait handshake. ReadyMask (or a claimed client_in post) is the IO
+// owner's completion signal; notify_sender fences Done before that publication. The executor
+// ring carries wakeups and persistence work, not socket sends.
 #pragma once
 #include "../cmd/txn_retry_queue.h"
 #include "atomic_parked.h"
@@ -69,8 +73,10 @@ static_assert(kReadLocalDrainChunkOps == kExecBatch);
 static_assert(kReadLocalOwnerTaskChunkOps == kExecBatch);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 
-// Contract: the shard owner borrows a store for one declared-key-precise write when read-local
-// is armed. Suspend eviction but keep maxmemory admission: the operation updates only its declared
+// Constructed only with read-local armed, a parser-classified declared-key-precise write,
+// maxmemory enabled and a live store policy that evicts. That policy may have changed since
+// parsing. The shard owner suspends eviction but keeps admission, fulfilling IO's promise:
+// the operation updates only its declared
 // keys or fails, and cannot evict behind a younger local read. Destruction restores the policy
 // before the next task. No ownership transfer or cross-thread publication occurs.
 class ReadLocalPreciseWriteGuard {
@@ -88,16 +94,17 @@ private:
 };
 
 // The false specialization owns no storage. The true specialization owns optional per-thread
-// lane/reclamation state; only its physical thread may access the implementation.
+// lane/reclamation state; while workers run, only its physical thread accesses the implementation.
 template <bool Enabled>
 struct ReadLocalExState;
 
 template <>
 struct ReadLocalExState<false> {};
 
-// Contract: init creates Impl only when read-local is enabled. The owning thread destroys it
-// after lane/reclamation shutdown; disabled operation allocates nothing. Server, ThreadCtx and
-// demotion context are borrowed. This wrapper provides no cross-thread synchronization.
+// init on the worker creates Impl only when read-local is enabled; disabled operation allocates
+// nothing. After join, the boot thread runs read_local_shutdown_drain on graceful paths and
+// destroys the executor vector, freeing Impl. Join orders those accesses. Server, ThreadCtx
+// and demotion context are borrowed; the wrapper provides no other cross-thread synchronization.
 template <>
 struct ReadLocalExState<true> {
     // Owns the bounded lane, fallback array and deferred reclamation queue. The local parser
@@ -501,7 +508,8 @@ public:
             did += aof_flush_pass();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
         }
-        // Phase 3: finish local tails and reclamation before acknowledging control work.
+        // Phase 3: finish local tails and reclamation, then run the control tail outside an
+        // LB freeze. An LB-frozen pass may already have acknowledged above and touches no shard here.
         if (fairlane_turn) {
             owner_work_remains |= fairlane_owner_debt_pending();
             if (!owner_work_remains) did += drain_local_read_tail();
@@ -622,8 +630,10 @@ public:
     // Contract: the pinned thread runs its active EX tenure until stop or role change. Require
     // successful init/activation and, for a fused-capable split owner, an empty local-read lane.
     // Owns queue draining, shard maintenance, ring submission and blocked-flag publication;
-    // DatabaseWorkScope brackets database-map access. No store/vector access follows ExDrain
-    // acknowledgement. Refused work remains queued, idle sweeps ignore hints, and parking uses
+    // DatabaseWorkScope brackets database-map access. After ExDrain acknowledgement, no
+    // store/vector access occurs until FLIP publishes ExInstall or LB leaves ExDrain;
+    // ExInstall remasks the inbox and rebinds the installed vector. Refused work remains
+    // queued, idle sweeps ignore hints, and parking uses
     // arm/recheck/wait so a racing producer cannot strand work. Completion is release-published
     // by task paths; this loop sends no replies and reports no recoverable loop-level error.
     void /* TOMO_TOOL_BIND run */ run() {
@@ -1043,7 +1053,9 @@ private:
     // NO-TOUCH. LFU/LRU must see local-read heat or they can evict a key that is hot only on this
     // lane; the no-touch counter must distinguish deliberate suppression from no observation.
     // Callers gate on maxmemory_enabled_, so disabled reads need not load policy or clock state.
-    // This cold helper borrows an immutable object within the current QSBR rotation.
+    // This cold helper borrows an object within the current QSBR rotation. Its value and
+    // layout bits are immutable, but accounting may change: one unretried eviction-meta
+    // CAS and the owner store's idle-clock touch through note_object_access.
     //
     // The arithmetic below is FlatStore::touch()'s, with the two differences foreignness forces:
     // the logarithmic-increment dice are this thread's own (the store's PRNG belongs to its owner
@@ -1100,7 +1112,7 @@ private:
     // Pin one command clock, capture immutable values, and validate the complete window once.
     // No Done is published and no store pointer escapes. Any conflict, type, expiry or window
     // failure clears the reply and returns a reason for owner demotion; there is no local retry.
-    // Reply allocation uses the ordinary Sink/SmallBuf failure policy.
+    // SmallBuf::grow does not check malloc's result; reply allocation failure is not handled.
     PreparedLocalRead prepare_captured_local_mget(Op& op) {
         // Phase 1: resolve the touched shards and pin the command-wide expiry cut.
         const uint32_t key_count = op.argc() - 1;
@@ -1238,7 +1250,8 @@ private:
     // MGET requires no capture and uses its own window. None means complete copied bytes with
     // no retained FlatStore pointer. Failure clears bytes and returns an owner-demotion reason,
     // never retries locally. The caller's ordered prefix commit preserves same-key dependencies.
-    // Reply allocation follows Sink/SmallBuf; caller-owned captures die before the rotation tick.
+    // SmallBuf::grow does not check malloc's result; reply allocation failure is not handled.
+    // Caller-owned captures die before the rotation tick.
     PreparedLocalRead prepare_local_read(
         Op& op, FlatStore* home, bool mget,
         const FlatStore::ReadLocalPrefetchCapture* captured = nullptr) {
@@ -1356,8 +1369,10 @@ private:
         if (!lane.lane_count) return 0;
         // One record per chunk entry. Gather resolves the Op, its home store and its MGET class
         // exactly once; every later pass reads them from here instead of walking the ROB again.
-        // Borrows Op/store pointers only on this thread's stack. No capture or Client/ROB
-        // handle may outlive the rotation's QSBR tick; fallback and completion consume them.
+        // Stack-local to this bounded drain: Op/store pointers and captures die before the
+        // rotation's QSBR tick. Lane entries may persist across rotations; their Client
+        // lifetime is protected by tombstone compaction before the WB corpse-grace reaper,
+        // not by QSBR.
         struct LocalReadChunk {
             Op* ops[kReadLocalDrainChunkOps];
             FlatStore* stores[kReadLocalDrainChunkOps];  // null for an MGET (multi-store)
@@ -1650,7 +1665,7 @@ private:
             // can keep resetting idle_spins, starving sweep() after the last
             // EXEC retired. IoDrain waits for that state's record refs. Run the
             // bounded owner cleanup here, before any ExDrain ack;
-            // no owner work is permitted after that safe point.
+            // no owner work is permitted after that safe point until ownership installation.
             return atomic_cleanup_cycle(64);
         }
         if (stage == FlipStage::IoPrepare &&
@@ -1694,7 +1709,8 @@ private:
     // quiescent, then retry coordinator notification if the ring lacks an SQE. On adoption,
     // bind notification pointers to this owner and force a state walk. Retirement sinks follow
     // the ownership edge and are checked before owner work; the caller must not touch shards
-    // after this function publishes the ExDrain acknowledgement.
+    // from this function's ExDrain acknowledgement until the stage ends. The first control
+    // pass after that rebinds notification pointers.
     uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
         if (srv_->lb_stage() != LbStage::ExDrain) {
@@ -2731,9 +2747,10 @@ private:
     }
 
     // Owner-only bounded poll of each connection's oldest parked operation. Remove its indexes
-    // before resuming execution can retire the Client/ROB; equal-op siblings rotate while held.
+    // before resumed execution publishes Done and lets IO retire the slot; equal-op siblings rotate while held.
     // Count held heads as work because remote decisions do not necessarily wake this executor.
-    // A failed execution transfers to xshard_retries_; younger same-key tasks cannot pass it.
+    // A failed execution moves to xshard_retries_; has_parked_predecessor holds younger
+    // same-connection tasks sharing a key, and fresh inbox work pauses while that queue is nonempty.
     template <bool IofusedPrivateQueue = false>
     uint32_t service_atomic_deferred() {
         if (atomic_deferred_.empty()) return 0;
@@ -3099,7 +3116,8 @@ private:
     uint32_t expire_beat_ms_ = 0;  // occupies the alignment region before snapshot_epoch_
     uint64_t snapshot_epoch_ = 0;
     bool snapshot_was_cancelled_ = false;
-    uint32_t keyspace_shard_cursor_ = 0;  // shares the snapshot control-state header
+    uint32_t keyspace_shard_cursor_ =
+        0;  // keyspace-sample cursor; fills padding after snapshot_was_cancelled_
     size_t snapshot_prepare_cursor_ = 0;
     size_t snapshot_progress_cursor_ = 0;
     std::vector<uint8_t> snapshot_done_shards_;
@@ -3119,7 +3137,8 @@ private:
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
     SlowlogExState slowlog_state_{};
-    // Completion callbacks are used only by fused-capable executors; common fields precede them.
+    // Fused-thread state (idle spins and completion context/callback), used only when Fused;
+    // common completion fields follow.
     uint32_t fused_idle_spins_ = 0;
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
@@ -3145,8 +3164,9 @@ private:
     uint32_t notify_batch_n_ = 0;
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
-    // Explicit tail padding is part of the executor layout contract.
-    uint32_t multi_retry_layout_pad_ = 0;  // preserves following offsets
+    // Explicit tail padding; no data member follows it. Its only effect is the asserted sizeof.
+    uint32_t multi_retry_layout_pad_ = 0;
+
 public:
     // R7 bodies are isolated from the FIFO translation units.
     // clang-format off

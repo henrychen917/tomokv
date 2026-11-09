@@ -1,0 +1,5757 @@
+{
+  "artifact": "build/tornread/instructions-20261109-110708",
+  "instrument": "tools/tornread_instructions.py",
+  "unit": "instructions per public command; MGET/MSET contain eight keys",
+  "repeats": 420,
+  "commands_per_repeat": 524288,
+  "seed_sha256": "55cf94266505e132ad6da898b1f8163222633b54f1e393d10611bd1e43ffb780",
+  "historical_seed_reused": false,
+  "binaries": {
+    "pre": {
+      "path": "/home/user/Projects/bins/tornread-PRE-83d1cda8",
+      "sha256": "83d1cda87db19a4c7b1ba281812ced448d589cd98aa4a661c5449658014d6a46",
+      "bytes": 247475584
+    },
+    "part1": {
+      "path": "/home/user/Projects/bins/tornread-PART1-2be78502",
+      "sha256": "2be78502f18cfc76cc0a84ab88d4d2145a0d364d692ecf2592ff8a979bb6759e",
+      "bytes": 247650952
+    },
+    "part2": {
+      "path": "/home/user/Projects/bins/tornread-PART2-b30bc3bb",
+      "sha256": "b30bc3bba310e2854221e4da0a3fc13a1d601bf2f990ee2f514510f27387fb55",
+      "bytes": 247672752
+    },
+    "hold": {
+      "path": "/home/user/Projects/cx-tornhold/build/tornhold/tomokv-hold",
+      "sha256": "18eb7a988891a41cae24a20ae2b33378d987a07a80d031b9038ef709985ec92b",
+      "bytes": 247551648
+    },
+    "merged-part2": {
+      "path": "/home/user/Projects/cx-tornhold/build/tornhold/tomokv-merged-part2",
+      "sha256": "af4dffe990e25f987fd01cdb419ff8b371e41740b7e0cc48bd3cfa011ea4fab3",
+      "bytes": 247718936
+    }
+  },
+  "cells": [
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arms": {
+        "pre": {
+          "median": 39485.4540977478,
+          "minimum": 39419.15846824646,
+          "maximum": 39702.55975151062,
+          "span_percent": 0.7177359099444294,
+          "max_deviation_from_median_percent": 0.5498370443590791,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20701749758,
+              "commands": 524288,
+              "instructions_per_command": 39485.4540977478,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20815575647,
+              "commands": 524288,
+              "instructions_per_command": 39702.55975151062,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20666991755,
+              "commands": 524288,
+              "instructions_per_command": 39419.15846824646,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 39921.21593666077,
+          "minimum": 39279.84597015381,
+          "maximum": 39990.035301208496,
+          "span_percent": 1.7789772039546041,
+          "max_deviation_from_median_percent": 1.6065892570120093,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20966295628,
+              "commands": 524288,
+              "instructions_per_command": 39990.035301208496,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20930214461,
+              "commands": 524288,
+              "instructions_per_command": 39921.21593666077,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20593951884,
+              "commands": 524288,
+              "instructions_per_command": 39279.84597015381,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 39231.644399642944,
+          "minimum": 38403.837995529175,
+          "maximum": 39759.246532440186,
+          "span_percent": 3.454885864848802,
+          "max_deviation_from_median_percent": 2.110047684163103,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20134671415,
+              "commands": 524288,
+              "instructions_per_command": 38403.837995529175,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20845295846,
+              "commands": 524288,
+              "instructions_per_command": 39759.246532440186,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20568680379,
+              "commands": 524288,
+              "instructions_per_command": 39231.644399642944,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 39290.07858085632,
+          "minimum": 39084.52726364136,
+          "maximum": 39300.78762626648,
+          "span_percent": 0.5504197762803474,
+          "max_deviation_from_median_percent": 0.5231634159039797,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20491548630,
+              "commands": 524288,
+              "instructions_per_command": 39084.52726364136,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20604931343,
+              "commands": 524288,
+              "instructions_per_command": 39300.78762626648,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20599316719,
+              "commands": 524288,
+              "instructions_per_command": 39290.07858085632,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 39540.9294128418,
+          "minimum": 39359.18732833862,
+          "maximum": 39663.10722160339,
+          "span_percent": 0.7686210156862568,
+          "max_deviation_from_median_percent": 0.4596302798187365,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20794891159,
+              "commands": 524288,
+              "instructions_per_command": 39663.10722160339,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20635549606,
+              "commands": 524288,
+              "instructions_per_command": 39359.18732833862,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20730834800,
+              "commands": 524288,
+              "instructions_per_command": 39540.9294128418,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.14049557327278084,
+      "hold_vs_part2_percent": 0.7883559762324577,
+      "hold_vs_merged_part2_percent": 0.6384584634241408
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 5703.500635147095,
+          "minimum": 5682.3129806518555,
+          "maximum": 5760.018974304199,
+          "span_percent": 1.36242631715495,
+          "max_deviation_from_median_percent": 0.9909412266708176,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2990276941,
+              "commands": 524288,
+              "instructions_per_command": 5703.500635147095,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2979168508,
+              "commands": 524288,
+              "instructions_per_command": 5682.3129806518555,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3019908828,
+              "commands": 524288,
+              "instructions_per_command": 5760.018974304199,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 5748.540424346924,
+          "minimum": 5714.878524780273,
+          "maximum": 5801.724311828613,
+          "span_percent": 1.5107450002529321,
+          "max_deviation_from_median_percent": 0.9251720185603728,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2996242232,
+              "commands": 524288,
+              "instructions_per_command": 5714.878524780273,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3013890762,
+              "commands": 524288,
+              "instructions_per_command": 5748.540424346924,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3041774436,
+              "commands": 524288,
+              "instructions_per_command": 5801.724311828613,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 5850.747165679932,
+          "minimum": 5797.526725769043,
+          "maximum": 5870.806175231934,
+          "span_percent": 1.2524801942005406,
+          "max_deviation_from_median_percent": 0.9096349304423202,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 3039573692,
+              "commands": 524288,
+              "instructions_per_command": 5797.526725769043,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3077993228,
+              "commands": 524288,
+              "instructions_per_command": 5870.806175231934,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3067476530,
+              "commands": 524288,
+              "instructions_per_command": 5850.747165679932,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 5830.021955490112,
+          "minimum": 5781.26672744751,
+          "maximum": 5851.487705230713,
+          "span_percent": 1.2044719268522868,
+          "max_deviation_from_median_percent": 0.8362786352234901,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 3056610551,
+              "commands": 524288,
+              "instructions_per_command": 5830.021955490112,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3067864786,
+              "commands": 524288,
+              "instructions_per_command": 5851.487705230713,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3031048770,
+              "commands": 524288,
+              "instructions_per_command": 5781.26672744751,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 5757.018880844116,
+          "minimum": 5713.116477966309,
+          "maximum": 5774.794380187988,
+          "span_percent": 1.0713513972814388,
+          "max_deviation_from_median_percent": 0.7625891765595613,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2995318412,
+              "commands": 524288,
+              "instructions_per_command": 5713.116477966309,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3018335915,
+              "commands": 524288,
+              "instructions_per_command": 5757.018880844116,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3027655396,
+              "commands": 524288,
+              "instructions_per_command": 5774.794380187988,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.9383403127409595,
+      "hold_vs_part2_percent": -1.601988296223411,
+      "hold_vs_merged_part2_percent": -1.252192104992833
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2361.868751525879,
+          "minimum": 2357.830030441284,
+          "maximum": 2371.616003036499,
+          "span_percent": 0.5836891904475409,
+          "max_deviation_from_median_percent": 0.4126923439045007,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1243409811,
+              "commands": 524288,
+              "instructions_per_command": 2371.616003036499,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1238299444,
+              "commands": 524288,
+              "instructions_per_command": 2361.868751525879,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1236181991,
+              "commands": 524288,
+              "instructions_per_command": 2357.830030441284,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2405.1257038116455,
+          "minimum": 2404.5632858276367,
+          "maximum": 2407.933994293213,
+          "span_percent": 0.14014687299854098,
+          "max_deviation_from_median_percent": 0.11676273207328837,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1260683676,
+              "commands": 524288,
+              "instructions_per_command": 2404.5632858276367,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1262450898,
+              "commands": 524288,
+              "instructions_per_command": 2407.933994293213,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1260978545,
+              "commands": 524288,
+              "instructions_per_command": 2405.1257038116455,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2604.751190185547,
+          "minimum": 2601.7281742095947,
+          "maximum": 2617.2595443725586,
+          "span_percent": 0.5962707770893659,
+          "max_deviation_from_median_percent": 0.4802130135938511,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1372197772,
+              "commands": 524288,
+              "instructions_per_command": 2617.2595443725586,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1364054861,
+              "commands": 524288,
+              "instructions_per_command": 2601.7281742095947,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1365639792,
+              "commands": 524288,
+              "instructions_per_command": 2604.751190185547,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2609.559034347534,
+          "minimum": 2594.37664604187,
+          "maximum": 2610.795679092407,
+          "span_percent": 0.629188028874861,
+          "max_deviation_from_median_percent": 0.5817989976785524,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1368808845,
+              "commands": 524288,
+              "instructions_per_command": 2610.795679092407,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1368160487,
+              "commands": 524288,
+              "instructions_per_command": 2609.559034347534,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1360200543,
+              "commands": 524288,
+              "instructions_per_command": 2594.37664604187,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2412.8833961486816,
+          "minimum": 2396.413595199585,
+          "maximum": 2415.5437812805176,
+          "span_percent": 0.7928350831816913,
+          "max_deviation_from_median_percent": 0.6825775740089602,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1265045810,
+              "commands": 524288,
+              "instructions_per_command": 2412.8833961486816,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1256410891,
+              "commands": 524288,
+              "instructions_per_command": 2396.413595199585,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1266440618,
+              "commands": 524288,
+              "instructions_per_command": 2415.5437812805176,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 2.159927158943309,
+      "hold_vs_part2_percent": -7.366069924828322,
+      "hold_vs_merged_part2_percent": -7.536738414811417
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 128,
+      "arms": {
+        "pre": {
+          "median": 1747.8529796600342,
+          "minimum": 1742.0645008087158,
+          "maximum": 1760.320936203003,
+          "span_percent": 1.0445063518922555,
+          "max_deviation_from_median_percent": 0.7133298216760673,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 913343513,
+              "commands": 524288,
+              "instructions_per_command": 1742.0645008087158,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 916378343,
+              "commands": 524288,
+              "instructions_per_command": 1747.8529796600342,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 922915143,
+              "commands": 524288,
+              "instructions_per_command": 1760.320936203003,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 1790.5482349395752,
+          "minimum": 1786.0814952850342,
+          "maximum": 1790.6601524353027,
+          "span_percent": 0.25571258349390785,
+          "max_deviation_from_median_percent": 0.2494621237998513,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 938821630,
+              "commands": 524288,
+              "instructions_per_command": 1790.6601524353027,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 938762953,
+              "commands": 524288,
+              "instructions_per_command": 1790.5482349395752,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 936421095,
+              "commands": 524288,
+              "instructions_per_command": 1786.0814952850342,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 1983.8250789642334,
+          "minimum": 1981.3311786651611,
+          "maximum": 1989.139591217041,
+          "span_percent": 0.3936038834611719,
+          "max_deviation_from_median_percent": 0.2678921800697446,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1038788161,
+              "commands": 524288,
+              "instructions_per_command": 1981.3311786651611,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1040095683,
+              "commands": 524288,
+              "instructions_per_command": 1983.8250789642334,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1042882018,
+              "commands": 524288,
+              "instructions_per_command": 1989.139591217041,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 1989.4445304870605,
+          "minimum": 1977.4914417266846,
+          "maximum": 1993.593837738037,
+          "span_percent": 0.8093915545064386,
+          "max_deviation_from_median_percent": 0.6008254353012593,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1045217326,
+              "commands": 524288,
+              "instructions_per_command": 1993.593837738037,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1043041894,
+              "commands": 524288,
+              "instructions_per_command": 1989.4445304870605,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1036775033,
+              "commands": 524288,
+              "instructions_per_command": 1977.4914417266846,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 1798.8842067718506,
+          "minimum": 1797.9009132385254,
+          "maximum": 1804.6282176971436,
+          "span_percent": 0.37397095562312516,
+          "max_deviation_from_median_percent": 0.31930965337678746,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 943133403,
+              "commands": 524288,
+              "instructions_per_command": 1798.8842067718506,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 942617874,
+              "commands": 524288,
+              "instructions_per_command": 1797.9009132385254,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 946144919,
+              "commands": 524288,
+              "instructions_per_command": 1804.6282176971436,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 2.9196521507056206,
+      "hold_vs_part2_percent": -9.322438462615946,
+      "hold_vs_merged_part2_percent": -9.578569334052078
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2490.6653480529785,
+          "minimum": 2484.67258644104,
+          "maximum": 2491.1866817474365,
+          "span_percent": 0.2615403675764282,
+          "max_deviation_from_median_percent": 0.24060886447965332,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1305825954,
+              "commands": 524288,
+              "instructions_per_command": 2490.6653480529785,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1306099283,
+              "commands": 524288,
+              "instructions_per_command": 2491.1866817474365,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1302684021,
+              "commands": 524288,
+              "instructions_per_command": 2484.67258644104,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2510.872663497925,
+          "minimum": 2502.496801376343,
+          "maximum": 2513.82212638855,
+          "span_percent": 0.451051348674512,
+          "max_deviation_from_median_percent": 0.33358370750325206,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1317966775,
+              "commands": 524288,
+              "instructions_per_command": 2513.82212638855,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1312029043,
+              "commands": 524288,
+              "instructions_per_command": 2502.496801376343,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1316420407,
+              "commands": 524288,
+              "instructions_per_command": 2510.872663497925,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2509.457311630249,
+          "minimum": 2504.388792037964,
+          "maximum": 2513.3329334259033,
+          "span_percent": 0.35641735551695686,
+          "max_deviation_from_median_percent": 0.20197672097448163,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1317710297,
+              "commands": 524288,
+              "instructions_per_command": 2513.3329334259033,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1315678355,
+              "commands": 524288,
+              "instructions_per_command": 2509.457311630249,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1313020991,
+              "commands": 524288,
+              "instructions_per_command": 2504.388792037964,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2500.672956466675,
+          "minimum": 2495.473072052002,
+          "maximum": 2509.227954864502,
+          "span_percent": 0.5500472493586269,
+          "max_deviation_from_median_percent": 0.3421078464380617,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1308346586,
+              "commands": 524288,
+              "instructions_per_command": 2495.473072052002,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1311072823,
+              "commands": 524288,
+              "instructions_per_command": 2500.672956466675,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1315558106,
+              "commands": 524288,
+              "instructions_per_command": 2509.227954864502,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2518.0980129241943,
+          "minimum": 2504.3438568115234,
+          "maximum": 2520.8585777282715,
+          "span_percent": 0.6558410686155135,
+          "max_deviation_from_median_percent": 0.5462121030268633,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1312997432,
+              "commands": 524288,
+              "instructions_per_command": 2504.3438568115234,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1320208571,
+              "commands": 524288,
+              "instructions_per_command": 2518.0980129241943,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1321655902,
+              "commands": 524288,
+              "instructions_per_command": 2520.8585777282715,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.1014191405786633,
+      "hold_vs_part2_percent": 0.34432549435685633,
+      "hold_vs_merged_part2_percent": 0.696814687920666
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 17547.071464538574,
+          "minimum": 17487.67439842224,
+          "maximum": 17588.016160964966,
+          "span_percent": 0.5718433571408678,
+          "max_deviation_from_median_percent": 0.3385013062514186,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9221185817,
+              "commands": 524288,
+              "instructions_per_command": 17588.016160964966,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9168577835,
+              "commands": 524288,
+              "instructions_per_command": 17487.67439842224,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9199719004,
+              "commands": 524288,
+              "instructions_per_command": 17547.071464538574,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 17579.427766799927,
+          "minimum": 17555.640726089478,
+          "maximum": 17586.76926803589,
+          "span_percent": 0.17707369295148348,
+          "max_deviation_from_median_percent": 0.1353118032395391,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9216683025,
+              "commands": 524288,
+              "instructions_per_command": 17579.427766799927,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9220532086,
+              "commands": 524288,
+              "instructions_per_command": 17586.76926803589,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9204211765,
+              "commands": 524288,
+              "instructions_per_command": 17555.640726089478,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 17629.688467025757,
+          "minimum": 17577.425619125366,
+          "maximum": 17631.205364227295,
+          "span_percent": 0.30505215791258794,
+          "max_deviation_from_median_percent": 0.29644793779619016,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9215633323,
+              "commands": 524288,
+              "instructions_per_command": 17577.425619125366,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9243829398,
+              "commands": 524288,
+              "instructions_per_command": 17631.205364227295,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9243034107,
+              "commands": 524288,
+              "instructions_per_command": 17629.688467025757,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 17683.274492263794,
+          "minimum": 17666.489227294922,
+          "maximum": 17710.696073532104,
+          "span_percent": 0.24999242225484056,
+          "max_deviation_from_median_percent": 0.15507072109471093,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9262328304,
+              "commands": 524288,
+              "instructions_per_command": 17666.489227294922,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9271128617,
+              "commands": 524288,
+              "instructions_per_command": 17683.274492263794,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9285505423,
+              "commands": 524288,
+              "instructions_per_command": 17710.696073532104,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 17633.24829673767,
+          "minimum": 17349.529554367065,
+          "maximum": 17703.077209472656,
+          "span_percent": 2.005005822840938,
+          "max_deviation_from_median_percent": 1.608998736909389,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9244900483,
+              "commands": 524288,
+              "instructions_per_command": 17633.24829673767,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9281510944,
+              "commands": 524288,
+              "instructions_per_command": 17703.077209472656,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9096150151,
+              "commands": 524288,
+              "instructions_per_command": 17349.529554367065,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.4911180328481368,
+      "hold_vs_part2_percent": 0.020192244001204784,
+      "hold_vs_merged_part2_percent": -0.2829011988023433
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 19136.43962287903,
+          "minimum": 19079.70139694214,
+          "maximum": 19179.22731590271,
+          "span_percent": 0.520085872408474,
+          "max_deviation_from_median_percent": 0.2964931149943634,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10003258486,
+              "commands": 524288,
+              "instructions_per_command": 19079.70139694214,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10033005657,
+              "commands": 524288,
+              "instructions_per_command": 19136.43962287903,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10055438731,
+              "commands": 524288,
+              "instructions_per_command": 19179.22731590271,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 19075.254432678223,
+          "minimum": 19055.047914505005,
+          "maximum": 19101.817539215088,
+          "span_percent": 0.24518480146697794,
+          "max_deviation_from_median_percent": 0.13925427118476288,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9990332961,
+              "commands": 524288,
+              "instructions_per_command": 19055.047914505005,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10000926996,
+              "commands": 524288,
+              "instructions_per_command": 19075.254432678223,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10014853714,
+              "commands": 524288,
+              "instructions_per_command": 19101.817539215088,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 19093.9942111969,
+          "minimum": 19067.454877853394,
+          "maximum": 19100.722759246826,
+          "span_percent": 0.17423217492086604,
+          "max_deviation_from_median_percent": 0.13899309411093747,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10010752037,
+              "commands": 524288,
+              "instructions_per_command": 19093.9942111969,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10014279734,
+              "commands": 524288,
+              "instructions_per_command": 19100.722759246826,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9996837783,
+              "commands": 524288,
+              "instructions_per_command": 19067.454877853394,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 19077.025550842285,
+          "minimum": 19031.542821884155,
+          "maximum": 19085.025844573975,
+          "span_percent": 0.2803530484733138,
+          "max_deviation_from_median_percent": 0.238416250148188,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10006050030,
+              "commands": 524288,
+              "instructions_per_command": 19085.025844573975,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9978009523,
+              "commands": 524288,
+              "instructions_per_command": 19031.542821884155,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10001855572,
+              "commands": 524288,
+              "instructions_per_command": 19077.025550842285,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 19159.308088302612,
+          "minimum": 18652.574199676514,
+          "maximum": 19169.540941238403,
+          "span_percent": 2.6982537113514806,
+          "max_deviation_from_median_percent": 2.644844408214701,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10050360281,
+              "commands": 524288,
+              "instructions_per_command": 19169.540941238403,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9779320822,
+              "commands": 524288,
+              "instructions_per_command": 18652.574199676514,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10044995319,
+              "commands": 524288,
+              "instructions_per_command": 19159.308088302612,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.11950219515359795,
+      "hold_vs_part2_percent": 0.3420650304136519,
+      "hold_vs_merged_part2_percent": 0.4313174359442673
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arms": {
+        "pre": {
+          "median": 39524.58304595947,
+          "minimum": 39056.455364227295,
+          "maximum": 39758.52307510376,
+          "span_percent": 1.7762811313154028,
+          "max_deviation_from_median_percent": 1.1843962558386396,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20476830870,
+              "commands": 524288,
+              "instructions_per_command": 39056.455364227295,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20844916546,
+              "commands": 524288,
+              "instructions_per_command": 39758.52307510376,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20722264596,
+              "commands": 524288,
+              "instructions_per_command": 39524.58304595947,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 39832.734519958496,
+          "minimum": 39699.26297187805,
+          "maximum": 39948.685329437256,
+          "span_percent": 0.6261743276355509,
+          "max_deviation_from_median_percent": 0.335080053350511,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20944616334,
+              "commands": 524288,
+              "instructions_per_command": 39948.685329437256,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20813847185,
+              "commands": 524288,
+              "instructions_per_command": 39699.26297187805,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20883824716,
+              "commands": 524288,
+              "instructions_per_command": 39832.734519958496,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 39456.44014167786,
+          "minimum": 39398.770334243774,
+          "maximum": 39736.1705532074,
+          "span_percent": 0.8551207806687736,
+          "max_deviation_from_median_percent": 0.708960084906549,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20686538089,
+              "commands": 524288,
+              "instructions_per_command": 39456.44014167786,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20656302501,
+              "commands": 524288,
+              "instructions_per_command": 39398.770334243774,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20833197387,
+              "commands": 524288,
+              "instructions_per_command": 39736.1705532074,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 39444.0438709259,
+          "minimum": 38737.25410079956,
+          "maximum": 39513.618869781494,
+          "span_percent": 1.9682686986214157,
+          "max_deviation_from_median_percent": 1.7918795862797312,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20680038873,
+              "commands": 524288,
+              "instructions_per_command": 39444.0438709259,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20309477478,
+              "commands": 524288,
+              "instructions_per_command": 38737.25410079956,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 20716516210,
+              "commands": 524288,
+              "instructions_per_command": 39513.618869781494,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 39159.888175964355,
+          "minimum": 33530.36861419678,
+          "maximum": 39274.95923614502,
+          "span_percent": 14.669578718241004,
+          "max_deviation_from_median_percent": 14.37572941084872,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 20531059452,
+              "commands": 524288,
+              "instructions_per_command": 39159.888175964355,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 20591389828,
+              "commands": 524288,
+              "instructions_per_command": 39274.95923614502,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 17579569900,
+              "commands": 524288,
+              "instructions_per_command": 33530.36861419678,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": -0.9227039019514716,
+      "hold_vs_part2_percent": -0.7515933131540975,
+      "hold_vs_merged_part2_percent": -0.720402035580836
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 5722.041286468506,
+          "minimum": 5699.305511474609,
+          "maximum": 5726.943862915039,
+          "span_percent": 0.483015589310565,
+          "max_deviation_from_median_percent": 0.3973367869201169,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2988077488,
+              "commands": 524288,
+              "instructions_per_command": 5699.305511474609,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3002567944,
+              "commands": 524288,
+              "instructions_per_command": 5726.943862915039,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2999997582,
+              "commands": 524288,
+              "instructions_per_command": 5722.041286468506,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 5892.019104003906,
+          "minimum": 5882.598009109497,
+          "maximum": 5919.739850997925,
+          "span_percent": 0.6303754491085762,
+          "max_deviation_from_median_percent": 0.47047958441242993,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 3084175545,
+              "commands": 524288,
+              "instructions_per_command": 5882.598009109497,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3103648567,
+              "commands": 524288,
+              "instructions_per_command": 5919.739850997925,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3089114912,
+              "commands": 524288,
+              "instructions_per_command": 5892.019104003906,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 5843.355350494385,
+          "minimum": 5803.180770874023,
+          "maximum": 5904.053014755249,
+          "span_percent": 1.7262726264404091,
+          "max_deviation_from_median_percent": 1.0387467579860405,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 3063601090,
+              "commands": 524288,
+              "instructions_per_command": 5843.355350494385,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3095424147,
+              "commands": 524288,
+              "instructions_per_command": 5904.053014755249,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3042538040,
+              "commands": 524288,
+              "instructions_per_command": 5803.180770874023,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 5856.770750045776,
+          "minimum": 5830.364164352417,
+          "maximum": 5865.912771224976,
+          "span_percent": 0.6069659952505525,
+          "max_deviation_from_median_percent": 0.45087279014895676,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 3056789967,
+              "commands": 524288,
+              "instructions_per_command": 5830.364164352417,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3070634623,
+              "commands": 524288,
+              "instructions_per_command": 5856.770750045776,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 3075427675,
+              "commands": 524288,
+              "instructions_per_command": 5865.912771224976,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 5760.193252563477,
+          "minimum": 5718.099044799805,
+          "maximum": 5767.135984420776,
+          "span_percent": 0.8513071952776692,
+          "max_deviation_from_median_percent": 0.7307776999484967,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 3023640191,
+              "commands": 524288,
+              "instructions_per_command": 5767.135984420776,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 3020000200,
+              "commands": 524288,
+              "instructions_per_command": 5760.193252563477,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2997930712,
+              "commands": 524288,
+              "instructions_per_command": 5718.099044799805,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.6667544707374295,
+      "hold_vs_part2_percent": -1.4231908371595492,
+      "hold_vs_merged_part2_percent": -1.6489888644103945
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2370.4550399780273,
+          "minimum": 2367.4632148742676,
+          "maximum": 2374.541130065918,
+          "span_percent": 0.29858888155566954,
+          "max_deviation_from_median_percent": 0.17237576832203916,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1244943420,
+              "commands": 524288,
+              "instructions_per_command": 2374.541130065918,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1242801132,
+              "commands": 524288,
+              "instructions_per_command": 2370.4550399780273,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1241232554,
+              "commands": 524288,
+              "instructions_per_command": 2367.4632148742676,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2621.178716659546,
+          "minimum": 2621.046298980713,
+          "maximum": 2626.980722427368,
+          "span_percent": 0.22640285490407755,
+          "max_deviation_from_median_percent": 0.22135101780531755,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1374183122,
+              "commands": 524288,
+              "instructions_per_command": 2621.046298980713,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1377294469,
+              "commands": 524288,
+              "instructions_per_command": 2626.980722427368,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1374252547,
+              "commands": 524288,
+              "instructions_per_command": 2621.178716659546,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2610.5033855438232,
+          "minimum": 2607.092309951782,
+          "maximum": 2616.6502571105957,
+          "span_percent": 0.36613425639447517,
+          "max_deviation_from_median_percent": 0.2354669065289083,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1368655599,
+              "commands": 524288,
+              "instructions_per_command": 2610.5033855438232,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1371878330,
+              "commands": 524288,
+              "instructions_per_command": 2616.6502571105957,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1366867213,
+              "commands": 524288,
+              "instructions_per_command": 2607.092309951782,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2606.6525592803955,
+          "minimum": 2606.293607711792,
+          "maximum": 2609.3186645507812,
+          "span_percent": 0.11605140194918685,
+          "max_deviation_from_median_percent": 0.10228080688750324,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1366636657,
+              "commands": 524288,
+              "instructions_per_command": 2606.6525592803955,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1366448463,
+              "commands": 524288,
+              "instructions_per_command": 2606.293607711792,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1368034464,
+              "commands": 524288,
+              "instructions_per_command": 2609.3186645507812,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2414.6438961029053,
+          "minimum": 2411.4536323547363,
+          "maximum": 2424.9410152435303,
+          "span_percent": 0.5585661268960527,
+          "max_deviation_from_median_percent": 0.4264446263585264,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1265968819,
+              "commands": 524288,
+              "instructions_per_command": 2414.6438961029053,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1271367475,
+              "commands": 524288,
+              "instructions_per_command": 2424.9410152435303,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1264296202,
+              "commands": 524288,
+              "instructions_per_command": 2411.4536323547363,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.8641507803196955,
+      "hold_vs_part2_percent": -7.502747957559775,
+      "hold_vs_merged_part2_percent": -7.366101112857826
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 128,
+      "arms": {
+        "pre": {
+          "median": 1774.0311489105225,
+          "minimum": 1773.5931339263916,
+          "maximum": 1775.2682914733887,
+          "span_percent": 0.09442661410008651,
+          "max_deviation_from_median_percent": 0.06973623679753152,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 930751862,
+              "commands": 524288,
+              "instructions_per_command": 1775.2682914733887,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 930103243,
+              "commands": 524288,
+              "instructions_per_command": 1774.0311489105225,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 929873597,
+              "commands": 524288,
+              "instructions_per_command": 1773.5931339263916,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2006.9588298797607,
+          "minimum": 2002.5444774627686,
+          "maximum": 2013.4012870788574,
+          "span_percent": 0.5409582625438965,
+          "max_deviation_from_median_percent": 0.32100594706681923,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1049910039,
+              "commands": 524288,
+              "instructions_per_command": 2002.5444774627686,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1052224431,
+              "commands": 524288,
+              "instructions_per_command": 2006.9588298797607,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1055602134,
+              "commands": 524288,
+              "instructions_per_command": 2013.4012870788574,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 1993.6017150878906,
+          "minimum": 1988.626298904419,
+          "maximum": 1997.275806427002,
+          "span_percent": 0.43386336684615473,
+          "max_deviation_from_median_percent": 0.24956921665029425,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1047147738,
+              "commands": 524288,
+              "instructions_per_command": 1997.275806427002,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1042612905,
+              "commands": 524288,
+              "instructions_per_command": 1988.626298904419,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1045221456,
+              "commands": 524288,
+              "instructions_per_command": 1993.6017150878906,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 1989.9799556732178,
+          "minimum": 1988.9068279266357,
+          "maximum": 1991.5499992370605,
+          "span_percent": 0.13282401678918468,
+          "max_deviation_from_median_percent": 0.0788974561963174,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1044145766,
+              "commands": 524288,
+              "instructions_per_command": 1991.5499992370605,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1043322611,
+              "commands": 524288,
+              "instructions_per_command": 1989.9799556732178,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1042759983,
+              "commands": 524288,
+              "instructions_per_command": 1988.9068279266357,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 1809.9736003875732,
+          "minimum": 1806.7550964355469,
+          "maximum": 1820.3356304168701,
+          "span_percent": 0.7503166885094465,
+          "max_deviation_from_median_percent": 0.5724961970206656,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 954380127,
+              "commands": 524288,
+              "instructions_per_command": 1820.3356304168701,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 948947439,
+              "commands": 524288,
+              "instructions_per_command": 1809.9736003875732,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 947260016,
+              "commands": 524288,
+              "instructions_per_command": 1806.7550964355469,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 2.026032716456183,
+      "hold_vs_part2_percent": -9.21087262869965,
+      "hold_vs_merged_part2_percent": -9.045636604151008
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2479.834150314331,
+          "minimum": 2465.765645980835,
+          "maximum": 2491.733554840088,
+          "span_percent": 1.0471631280648899,
+          "max_deviation_from_median_percent": 0.5673163397525129,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1292771339,
+              "commands": 524288,
+              "instructions_per_command": 2465.765645980835,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1300147287,
+              "commands": 524288,
+              "instructions_per_command": 2479.834150314331,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1306386002,
+              "commands": 524288,
+              "instructions_per_command": 2491.733554840088,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2498.365587234497,
+          "minimum": 2488.933469772339,
+          "maximum": 2506.5707607269287,
+          "span_percent": 0.7059531657299603,
+          "max_deviation_from_median_percent": 0.3775315154175994,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1304917951,
+              "commands": 524288,
+              "instructions_per_command": 2488.933469772339,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1314164971,
+              "commands": 524288,
+              "instructions_per_command": 2506.5707607269287,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1309863097,
+              "commands": 524288,
+              "instructions_per_command": 2498.365587234497,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2495.2409896850586,
+          "minimum": 2484.5015907287598,
+          "maximum": 2502.2507877349854,
+          "span_percent": 0.711321955658713,
+          "max_deviation_from_median_percent": 0.430395260445538,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1302594370,
+              "commands": 524288,
+              "instructions_per_command": 2484.5015907287598,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1311900061,
+              "commands": 524288,
+              "instructions_per_command": 2502.2507877349854,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1308224908,
+              "commands": 524288,
+              "instructions_per_command": 2495.2409896850586,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2503.3167095184326,
+          "minimum": 2495.092140197754,
+          "maximum": 2504.9936542510986,
+          "span_percent": 0.39553581117786324,
+          "max_deviation_from_median_percent": 0.32854689498161366,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1308146868,
+              "commands": 524288,
+              "instructions_per_command": 2495.092140197754,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1312458911,
+              "commands": 524288,
+              "instructions_per_command": 2503.3167095184326,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1313338113,
+              "commands": 524288,
+              "instructions_per_command": 2504.9936542510986,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2504.009105682373,
+          "minimum": 2422.419479370117,
+          "maximum": 2506.771703720093,
+          "span_percent": 3.368686805433504,
+          "max_deviation_from_median_percent": 3.2583598089601074,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1312821926,
+              "commands": 524288,
+              "instructions_per_command": 2504.009105682373,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1270045464,
+              "commands": 524288,
+              "instructions_per_command": 2422.419479370117,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1314270323,
+              "commands": 524288,
+              "instructions_per_command": 2506.771703720093,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.9748617811791149,
+      "hold_vs_part2_percent": 0.3513935541120228,
+      "hold_vs_merged_part2_percent": 0.027659151609049637
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 17689.007062911987,
+          "minimum": 17654.143980026245,
+          "maximum": 17703.5000705719,
+          "span_percent": 0.2790212608888474,
+          "max_deviation_from_median_percent": 0.19708897600498204,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9281732645,
+              "commands": 524288,
+              "instructions_per_command": 17703.5000705719,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9274134135,
+              "commands": 524288,
+              "instructions_per_command": 17689.007062911987,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9255855839,
+              "commands": 524288,
+              "instructions_per_command": 17654.143980026245,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 17682.785850524902,
+          "minimum": 17645.6732006073,
+          "maximum": 17694.28227043152,
+          "span_percent": 0.2748948623543717,
+          "max_deviation_from_median_percent": 0.2098801073050425,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9270872428,
+              "commands": 524288,
+              "instructions_per_command": 17682.785850524902,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9251414711,
+              "commands": 524288,
+              "instructions_per_command": 17645.6732006073,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9276899863,
+              "commands": 524288,
+              "instructions_per_command": 17694.28227043152,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 17700.456842422485,
+          "minimum": 17598.099937438965,
+          "maximum": 17739.217044830322,
+          "span_percent": 0.7972512158733872,
+          "max_deviation_from_median_percent": 0.5782726733820952,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9226472620,
+              "commands": 524288,
+              "instructions_per_command": 17598.099937438965,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9280137117,
+              "commands": 524288,
+              "instructions_per_command": 17700.456842422485,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9300458626,
+              "commands": 524288,
+              "instructions_per_command": 17739.217044830322,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 17752.373014450073,
+          "minimum": 17726.75417137146,
+          "maximum": 17774.22171974182,
+          "span_percent": 0.2673870604888918,
+          "max_deviation_from_median_percent": 0.14431221706393876,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9318811157,
+              "commands": 524288,
+              "instructions_per_command": 17774.22171974182,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9307356143,
+              "commands": 524288,
+              "instructions_per_command": 17752.373014450073,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9293924491,
+              "commands": 524288,
+              "instructions_per_command": 17726.75417137146,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 17786.23636817932,
+          "minimum": 17783.52414894104,
+          "maximum": 17805.604984283447,
+          "span_percent": 0.12414563084245979,
+          "max_deviation_from_median_percent": 0.10889665302535634,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9323688309,
+              "commands": 524288,
+              "instructions_per_command": 17783.52414894104,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9335265026,
+              "commands": 524288,
+              "instructions_per_command": 17805.604984283447,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9325110293,
+              "commands": 524288,
+              "instructions_per_command": 17786.23636817932,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.5496594858124704,
+      "hold_vs_part2_percent": 0.48461758089344276,
+      "hold_vs_merged_part2_percent": 0.19075395555108177
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 82806.59575462341,
+          "minimum": 82688.60260009766,
+          "maximum": 82978.94939994812,
+          "span_percent": 0.35063245530686205,
+          "max_deviation_from_median_percent": 0.20813999628173804,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 43414504475,
+              "commands": 524288,
+              "instructions_per_command": 82806.59575462341,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 43504867423,
+              "commands": 524288,
+              "instructions_per_command": 82978.94939994812,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 43352642080,
+              "commands": 524288,
+              "instructions_per_command": 82688.60260009766,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 82732.00609016418,
+          "minimum": 82240.54552841187,
+          "maximum": 83284.46165275574,
+          "span_percent": 1.261804437820807,
+          "max_deviation_from_median_percent": 0.6677652201367723,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 43117731134,
+              "commands": 524288,
+              "instructions_per_command": 82240.54552841187,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 43375398009,
+              "commands": 524288,
+              "instructions_per_command": 82732.00609016418,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 43665043831,
+              "commands": 524288,
+              "instructions_per_command": 83284.46165275574,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 83206.95347213745,
+          "minimum": 83086.42066574097,
+          "maximum": 83489.06082725525,
+          "span_percent": 0.4839020595185109,
+          "max_deviation_from_median_percent": 0.339043004635741,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 43561213318,
+              "commands": 524288,
+              "instructions_per_command": 83086.42066574097,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 43772312723,
+              "commands": 524288,
+              "instructions_per_command": 83489.06082725525,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 43624407222,
+              "commands": 524288,
+              "instructions_per_command": 83206.95347213745,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 83474.23024559021,
+          "minimum": 83445.48824119568,
+          "maximum": 84529.3272190094,
+          "span_percent": 1.2984114673773561,
+          "max_deviation_from_median_percent": 1.2639792787725985,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 43749468139,
+              "commands": 524288,
+              "instructions_per_command": 83445.48824119568,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 44317711909,
+              "commands": 524288,
+              "instructions_per_command": 84529.3272190094,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 43764537227,
+              "commands": 524288,
+              "instructions_per_command": 83474.23024559021,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 82758.18479156494,
+          "minimum": 82242.30322647095,
+          "maximum": 83143.48985099792,
+          "span_percent": 1.0889395735258203,
+          "max_deviation_from_median_percent": 0.6233601744568169,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 43389123188,
+              "commands": 524288,
+              "instructions_per_command": 82758.18479156494,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 43118652674,
+              "commands": 524288,
+              "instructions_per_command": 82242.30322647095,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 43591134007,
+              "commands": 524288,
+              "instructions_per_command": 83143.48985099792,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": -0.05846268961705592,
+      "hold_vs_part2_percent": -0.5393403578016875,
+      "hold_vs_merged_part2_percent": -0.8578042012709619
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arms": {
+        "pre": {
+          "median": 17437.191705703735,
+          "minimum": 17433.028985977173,
+          "maximum": 17454.381965637207,
+          "span_percent": 0.12245652866825787,
+          "max_deviation_from_median_percent": 0.09858387877819062,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9139927901,
+              "commands": 524288,
+              "instructions_per_command": 17433.028985977173,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9142110365,
+              "commands": 524288,
+              "instructions_per_command": 17437.191705703735,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9151123012,
+              "commands": 524288,
+              "instructions_per_command": 17454.381965637207,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 17423.946521759033,
+          "minimum": 17409.60242652893,
+          "maximum": 17438.018255233765,
+          "span_percent": 0.16308491689496568,
+          "max_deviation_from_median_percent": 0.08232403154009699,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9135166074,
+              "commands": 524288,
+              "instructions_per_command": 17423.946521759033,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9127645637,
+              "commands": 524288,
+              "instructions_per_command": 17409.60242652893,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9142543715,
+              "commands": 524288,
+              "instructions_per_command": 17438.018255233765,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 17454.111234664917,
+          "minimum": 17418.398420333862,
+          "maximum": 17455.88910484314,
+          "span_percent": 0.21479572351308604,
+          "max_deviation_from_median_percent": 0.20460975555218697,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9151913187,
+              "commands": 524288,
+              "instructions_per_command": 17455.88910484314,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9132257271,
+              "commands": 524288,
+              "instructions_per_command": 17418.398420333862,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9150981071,
+              "commands": 524288,
+              "instructions_per_command": 17454.111234664917,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 17487.042612075806,
+          "minimum": 17436.371564865112,
+          "maximum": 17499.76736831665,
+          "span_percent": 0.36253015937503147,
+          "max_deviation_from_median_percent": 0.2897633884399761,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9168246597,
+              "commands": 524288,
+              "instructions_per_command": 17487.042612075806,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9141680375,
+              "commands": 524288,
+              "instructions_per_command": 17436.371564865112,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9174918034,
+              "commands": 524288,
+              "instructions_per_command": 17499.76736831665,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 17487.343099594116,
+          "minimum": 17481.02823638916,
+          "maximum": 17491.11692047119,
+          "span_percent": 0.057691348677578184,
+          "max_deviation_from_median_percent": 0.03611104996906376,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9168404139,
+              "commands": 524288,
+              "instructions_per_command": 17487.343099594116,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9165093332,
+              "commands": 524288,
+              "instructions_per_command": 17481.02823638916,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9170382708,
+              "commands": 524288,
+              "instructions_per_command": 17491.11692047119,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.2876116449071153,
+      "hold_vs_part2_percent": 0.1903956293300091,
+      "hold_vs_merged_part2_percent": 0.0017183438330681255
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 4627.858486175537,
+          "minimum": 4619.697328567505,
+          "maximum": 4632.184823989868,
+          "span_percent": 0.2698331303704783,
+          "max_deviation_from_median_percent": 0.17634846943594873,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2426330670,
+              "commands": 524288,
+              "instructions_per_command": 4627.858486175537,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2422051873,
+              "commands": 524288,
+              "instructions_per_command": 4619.697328567505,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2428598917,
+              "commands": 524288,
+              "instructions_per_command": 4632.184823989868,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 4644.759590148926,
+          "minimum": 4644.708860397339,
+          "maximum": 4647.329334259033,
+          "span_percent": 0.05641785782093224,
+          "max_deviation_from_median_percent": 0.055325664552318146,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2435165119,
+              "commands": 524288,
+              "instructions_per_command": 4644.708860397339,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2436539002,
+              "commands": 524288,
+              "instructions_per_command": 4647.329334259033,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2435191716,
+              "commands": 524288,
+              "instructions_per_command": 4644.759590148926,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 4814.2118854522705,
+          "minimum": 4810.733625411987,
+          "maximum": 4821.343593597412,
+          "span_percent": 0.22038847557761893,
+          "max_deviation_from_median_percent": 0.14813864272763752,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2522209911,
+              "commands": 524288,
+              "instructions_per_command": 4810.733625411987,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2524033521,
+              "commands": 524288,
+              "instructions_per_command": 4814.2118854522705,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2527772590,
+              "commands": 524288,
+              "instructions_per_command": 4821.343593597412,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 4820.8836460113525,
+          "minimum": 4816.364940643311,
+          "maximum": 4823.629274368286,
+          "span_percent": 0.15068469306422416,
+          "max_deviation_from_median_percent": 0.09373189024756129,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2525162342,
+              "commands": 524288,
+              "instructions_per_command": 4816.364940643311,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2528970945,
+              "commands": 524288,
+              "instructions_per_command": 4823.629274368286,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2527531445,
+              "commands": 524288,
+              "instructions_per_command": 4820.8836460113525,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 4694.294109344482,
+          "minimum": 4693.632932662964,
+          "maximum": 4698.5370807647705,
+          "span_percent": 0.10447040572179792,
+          "max_deviation_from_median_percent": 0.09038571767035236,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2463386609,
+              "commands": 524288,
+              "instructions_per_command": 4698.5370807647705,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2461162070,
+              "commands": 524288,
+              "instructions_per_command": 4694.294109344482,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2460815423,
+              "commands": 524288,
+              "instructions_per_command": 4693.632932662964,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.4355586577982749,
+      "hold_vs_part2_percent": -2.490911886744307,
+      "hold_vs_merged_part2_percent": -2.625857539034493
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2329.594337463379,
+          "minimum": 2329.5618228912354,
+          "maximum": 2339.2935428619385,
+          "span_percent": 0.41774311579498796,
+          "max_deviation_from_median_percent": 0.4163473975954426,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1221361309,
+              "commands": 524288,
+              "instructions_per_command": 2329.5618228912354,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1226463533,
+              "commands": 524288,
+              "instructions_per_command": 2339.2935428619385,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1221378356,
+              "commands": 524288,
+              "instructions_per_command": 2329.594337463379,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2362.7778663635254,
+          "minimum": 2356.7333278656006,
+          "maximum": 2363.829973220825,
+          "span_percent": 0.3003517789908378,
+          "max_deviation_from_median_percent": 0.2558233926250442,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1239327689,
+              "commands": 524288,
+              "instructions_per_command": 2363.829973220825,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1235607003,
+              "commands": 524288,
+              "instructions_per_command": 2356.7333278656006,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1238776082,
+              "commands": 524288,
+              "instructions_per_command": 2362.7778663635254,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2553.685655593872,
+          "minimum": 2553.5460205078125,
+          "maximum": 2554.406747817993,
+          "span_percent": 0.0337052960412427,
+          "max_deviation_from_median_percent": 0.028237313490074026,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1338866745,
+              "commands": 524288,
+              "instructions_per_command": 2553.685655593872,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1339244805,
+              "commands": 524288,
+              "instructions_per_command": 2554.406747817993,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1338793536,
+              "commands": 524288,
+              "instructions_per_command": 2553.5460205078125,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2542.770652770996,
+          "minimum": 2537.88800239563,
+          "maximum": 2544.323492050171,
+          "span_percent": 0.25308966215761186,
+          "max_deviation_from_median_percent": 0.1920208718016043,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1330584225,
+              "commands": 524288,
+              "instructions_per_command": 2537.88800239563,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1333958275,
+              "commands": 524288,
+              "instructions_per_command": 2544.323492050171,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1333144140,
+              "commands": 524288,
+              "instructions_per_command": 2542.770652770996,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2387.953493118286,
+          "minimum": 2383.4248943328857,
+          "maximum": 2390.927293777466,
+          "span_percent": 0.31417694968519433,
+          "max_deviation_from_median_percent": 0.18964350848754444,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1253534489,
+              "commands": 524288,
+              "instructions_per_command": 2390.927293777466,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1251975361,
+              "commands": 524288,
+              "instructions_per_command": 2387.953493118286,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1249601071,
+              "commands": 524288,
+              "instructions_per_command": 2383.4248943328857,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 2.505120943865813,
+      "hold_vs_part2_percent": -6.489920249681013,
+      "hold_vs_merged_part2_percent": -6.088522355879689
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 128,
+      "arms": {
+        "pre": {
+          "median": 1878.8054313659668,
+          "minimum": 1863.4725170135498,
+          "maximum": 1878.9269847869873,
+          "span_percent": 0.8225688256713992,
+          "max_deviation_from_median_percent": 0.8160991072539826,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 985035142,
+              "commands": 524288,
+              "instructions_per_command": 1878.8054313659668,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 985098871,
+              "commands": 524288,
+              "instructions_per_command": 1878.9269847869873,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 976996279,
+              "commands": 524288,
+              "instructions_per_command": 1863.4725170135498,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 1901.0788745880127,
+          "minimum": 1898.4089183807373,
+          "maximum": 1907.3512630462646,
+          "span_percent": 0.4703826224708988,
+          "max_deviation_from_median_percent": 0.329938359849023,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 995313015,
+              "commands": 524288,
+              "instructions_per_command": 1898.4089183807373,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1000001379,
+              "commands": 524288,
+              "instructions_per_command": 1907.3512630462646,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 996712841,
+              "commands": 524288,
+              "instructions_per_command": 1901.0788745880127,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2100.6494522094727,
+          "minimum": 2092.3052825927734,
+          "maximum": 2104.3196754455566,
+          "span_percent": 0.571937066422311,
+          "max_deviation_from_median_percent": 0.3972185653309639,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1096970552,
+              "commands": 524288,
+              "instructions_per_command": 2092.3052825927734,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1101345300,
+              "commands": 524288,
+              "instructions_per_command": 2100.6494522094727,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1103269554,
+              "commands": 524288,
+              "instructions_per_command": 2104.3196754455566,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2092.7665252685547,
+          "minimum": 2083.0529022216797,
+          "maximum": 2093.3777084350586,
+          "span_percent": 0.4933568120817478,
+          "max_deviation_from_median_percent": 0.4641522563358327,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1097212376,
+              "commands": 524288,
+              "instructions_per_command": 2092.7665252685547,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1092119640,
+              "commands": 524288,
+              "instructions_per_command": 2083.0529022216797,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1097532812,
+              "commands": 524288,
+              "instructions_per_command": 2093.3777084350586,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 1919.0239849090576,
+          "minimum": 1918.9784622192383,
+          "maximum": 1920.3408527374268,
+          "span_percent": 0.07099392862737149,
+          "max_deviation_from_median_percent": 0.06862174932282292,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1006097380,
+              "commands": 524288,
+              "instructions_per_command": 1918.9784622192383,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1006811665,
+              "commands": 524288,
+              "instructions_per_command": 1920.3408527374268,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1006121247,
+              "commands": 524288,
+              "instructions_per_command": 1919.0239849090576,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 2.1406449476703004,
+      "hold_vs_part2_percent": -8.646157839870927,
+      "hold_vs_merged_part2_percent": -8.302050814636452
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2520.3667030334473,
+          "minimum": 2515.8354530334473,
+          "maximum": 2522.2720279693604,
+          "span_percent": 0.2553824778023846,
+          "max_deviation_from_median_percent": 0.17978534609849853,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1322396957,
+              "commands": 524288,
+              "instructions_per_command": 2522.2720279693604,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1319022338,
+              "commands": 524288,
+              "instructions_per_command": 2515.8354530334473,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1321398018,
+              "commands": 524288,
+              "instructions_per_command": 2520.3667030334473,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2515.042272567749,
+          "minimum": 2506.0164833068848,
+          "maximum": 2517.0125999450684,
+          "span_percent": 0.43721398873176937,
+          "max_deviation_from_median_percent": 0.3588722686418037,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1319639502,
+              "commands": 524288,
+              "instructions_per_command": 2517.0125999450684,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1313874370,
+              "commands": 524288,
+              "instructions_per_command": 2506.0164833068848,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1318606483,
+              "commands": 524288,
+              "instructions_per_command": 2515.042272567749,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2509.392309188843,
+          "minimum": 2507.6932735443115,
+          "maximum": 2509.937822341919,
+          "span_percent": 0.08944591044566359,
+          "max_deviation_from_median_percent": 0.06770705554128603,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1314753491,
+              "commands": 524288,
+              "instructions_per_command": 2507.6932735443115,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1315644275,
+              "commands": 524288,
+              "instructions_per_command": 2509.392309188843,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1315930281,
+              "commands": 524288,
+              "instructions_per_command": 2509.937822341919,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2519.772876739502,
+          "minimum": 2515.36065864563,
+          "maximum": 2532.3830280303955,
+          "span_percent": 0.6755517349163618,
+          "max_deviation_from_median_percent": 0.5004479335141765,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1327698033,
+              "commands": 524288,
+              "instructions_per_command": 2532.3830280303955,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1318773409,
+              "commands": 524288,
+              "instructions_per_command": 2515.36065864563,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1321086682,
+              "commands": 524288,
+              "instructions_per_command": 2519.772876739502,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2522.535940170288,
+          "minimum": 2516.944646835327,
+          "maximum": 2525.2296104431152,
+          "span_percent": 0.32843788173058874,
+          "max_deviation_from_median_percent": 0.22165366391503177,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1322535323,
+              "commands": 524288,
+              "instructions_per_command": 2522.535940170288,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1323947582,
+              "commands": 524288,
+              "instructions_per_command": 2525.2296104431152,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1319603875,
+              "commands": 524288,
+              "instructions_per_command": 2516.944646835327,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.0860683143540264,
+      "hold_vs_part2_percent": 0.5237774473650925,
+      "hold_vs_merged_part2_percent": 0.10965525727706371
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 18068.850872039795,
+          "minimum": 18047.590492248535,
+          "maximum": 18084.995542526245,
+          "span_percent": 0.20701399631114062,
+          "max_deviation_from_median_percent": 0.11766315379888725,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9462135124,
+              "commands": 524288,
+              "instructions_per_command": 18047.590492248535,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9481746143,
+              "commands": 524288,
+              "instructions_per_command": 18084.995542526245,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9473281686,
+              "commands": 524288,
+              "instructions_per_command": 18068.850872039795,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 18302.441827774048,
+          "minimum": 18293.608686447144,
+          "maximum": 18310.678596496582,
+          "span_percent": 0.09326575224260406,
+          "max_deviation_from_median_percent": 0.04826209207505831,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9595750621,
+              "commands": 524288,
+              "instructions_per_command": 18302.441827774048,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9600069060,
+              "commands": 524288,
+              "instructions_per_command": 18310.678596496582,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9591119511,
+              "commands": 524288,
+              "instructions_per_command": 18293.608686447144,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 18349.886852264404,
+          "minimum": 18339.401525497437,
+          "maximum": 18367.25634765625,
+          "span_percent": 0.15179833196288156,
+          "max_deviation_from_median_percent": 0.09465723430170514,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9615128147,
+              "commands": 524288,
+              "instructions_per_command": 18339.401525497437,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9629732096,
+              "commands": 524288,
+              "instructions_per_command": 18367.25634765625,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9620625478,
+              "commands": 524288,
+              "instructions_per_command": 18349.886852264404,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 18330.71856689453,
+          "minimum": 18308.73672103882,
+          "maximum": 18330.73493385315,
+          "span_percent": 0.12000736760019902,
+          "max_deviation_from_median_percent": 0.11991808054602035,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9599050958,
+              "commands": 524288,
+              "instructions_per_command": 18308.73672103882,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9610584357,
+              "commands": 524288,
+              "instructions_per_command": 18330.73493385315,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9610575776,
+              "commands": 524288,
+              "instructions_per_command": 18330.71856689453,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 18357.76279258728,
+          "minimum": 18334.899654388428,
+          "maximum": 18364.496131896973,
+          "span_percent": 0.16122050297161344,
+          "max_deviation_from_median_percent": 0.12454207224033036,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9628284948,
+              "commands": 524288,
+              "instructions_per_command": 18364.496131896973,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9612767870,
+              "commands": 524288,
+              "instructions_per_command": 18334.899654388428,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9624754739,
+              "commands": 524288,
+              "instructions_per_command": 18357.76279258728,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.5989501634249281,
+      "hold_vs_part2_percent": 0.042920920364708515,
+      "hold_vs_merged_part2_percent": 0.1475350003004916
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 20050.26149368286,
+          "minimum": 20040.872840881348,
+          "maximum": 20054.23624229431,
+          "span_percent": 0.06664951186384381,
+          "max_deviation_from_median_percent": 0.04682558780827726,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10514195411,
+              "commands": 524288,
+              "instructions_per_command": 20054.23624229431,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10512111498,
+              "commands": 524288,
+              "instructions_per_command": 20050.26149368286,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10507189140,
+              "commands": 524288,
+              "instructions_per_command": 20040.872840881348,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 20012.763360977173,
+          "minimum": 19996.708684921265,
+          "maximum": 20023.17049407959,
+          "span_percent": 0.13222466423563972,
+          "max_deviation_from_median_percent": 0.08022218504423616,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10497908012,
+              "commands": 524288,
+              "instructions_per_command": 20023.17049407959,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10492451677,
+              "commands": 524288,
+              "instructions_per_command": 20012.763360977173,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10484034403,
+              "commands": 524288,
+              "instructions_per_command": 19996.708684921265,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 20032.71325111389,
+          "minimum": 19992.6620388031,
+          "maximum": 20035.642162322998,
+          "span_percent": 0.21454968671059876,
+          "max_deviation_from_median_percent": 0.19992904510108744,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10481912795,
+              "commands": 524288,
+              "instructions_per_command": 19992.6620388031,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10504446758,
+              "commands": 524288,
+              "instructions_per_command": 20035.642162322998,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10502911165,
+              "commands": 524288,
+              "instructions_per_command": 20032.71325111389,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 20005.95952987671,
+          "minimum": 20003.13749885559,
+          "maximum": 20009.154182434082,
+          "span_percent": 0.030074456411380585,
+          "max_deviation_from_median_percent": 0.015968504547868266,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10487404953,
+              "commands": 524288,
+              "instructions_per_command": 20003.13749885559,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10490559428,
+              "commands": 524288,
+              "instructions_per_command": 20009.154182434082,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10488884510,
+              "commands": 524288,
+              "instructions_per_command": 20005.95952987671,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 20007.692293167114,
+          "minimum": 20005.412252426147,
+          "maximum": 20015.151796340942,
+          "span_percent": 0.04867899691820581,
+          "max_deviation_from_median_percent": 0.03728317621305902,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 10488597579,
+              "commands": 524288,
+              "instructions_per_command": 20005.412252426147,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 10493703905,
+              "commands": 524288,
+              "instructions_per_command": 20015.151796340942,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 10489792977,
+              "commands": 524288,
+              "instructions_per_command": 20007.692293167114,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": -0.21231244554670292,
+      "hold_vs_part2_percent": -0.12490049467156483,
+      "hold_vs_merged_part2_percent": 0.008661235607410056
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arms": {
+        "pre": {
+          "median": 17448.670873641968,
+          "minimum": 17445.337047576904,
+          "maximum": 17462.536571502686,
+          "span_percent": 0.09857211503578144,
+          "max_deviation_from_median_percent": 0.07946563930931469,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9155398374,
+              "commands": 524288,
+              "instructions_per_command": 17462.536571502686,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9148128755,
+              "commands": 524288,
+              "instructions_per_command": 17448.670873641968,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9146380870,
+              "commands": 524288,
+              "instructions_per_command": 17445.337047576904,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 17439.775203704834,
+          "minimum": 17437.885597229004,
+          "maximum": 17446.49378967285,
+          "span_percent": 0.049359537856995817,
+          "max_deviation_from_median_percent": 0.038524498679262276,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9146987336,
+              "commands": 524288,
+              "instructions_per_command": 17446.49378967285,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9143464862,
+              "commands": 524288,
+              "instructions_per_command": 17439.775203704834,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9142474164,
+              "commands": 524288,
+              "instructions_per_command": 17437.885597229004,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 17466.32250404358,
+          "minimum": 17461.242971420288,
+          "maximum": 17485.187482833862,
+          "span_percent": 0.1370895986148824,
+          "max_deviation_from_median_percent": 0.10800773194194614,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9167273975,
+              "commands": 524288,
+              "instructions_per_command": 17485.187482833862,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9157383293,
+              "commands": 524288,
+              "instructions_per_command": 17466.32250404358,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9154720155,
+              "commands": 524288,
+              "instructions_per_command": 17461.242971420288,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 17479.360368728638,
+          "minimum": 17464.70792579651,
+          "maximum": 17493.749263763428,
+          "span_percent": 0.16614645704584938,
+          "max_deviation_from_median_percent": 0.08382711165073743,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9164218889,
+              "commands": 524288,
+              "instructions_per_command": 17479.360368728638,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9156536789,
+              "commands": 524288,
+              "instructions_per_command": 17464.70792579651,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9171762814,
+              "commands": 524288,
+              "instructions_per_command": 17493.749263763428,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 17489.45720100403,
+          "minimum": 17467.124616622925,
+          "maximum": 17503.465198516846,
+          "span_percent": 0.20778564752618323,
+          "max_deviation_from_median_percent": 0.12769169519921666,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9176856762,
+              "commands": 524288,
+              "instructions_per_command": 17503.465198516846,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9157803831,
+              "commands": 524288,
+              "instructions_per_command": 17467.124616622925,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9169512537,
+              "commands": 524288,
+              "instructions_per_command": 17489.45720100403,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.23375033925174815,
+      "hold_vs_part2_percent": 0.13245316496985904,
+      "hold_vs_merged_part2_percent": 0.05776431209378874
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 4634.260814666748,
+          "minimum": 4629.781423568726,
+          "maximum": 4635.125358581543,
+          "span_percent": 0.11531364389126786,
+          "max_deviation_from_median_percent": 0.09665815708614958,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2427338843,
+              "commands": 524288,
+              "instructions_per_command": 4629.781423568726,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2430140604,
+              "commands": 524288,
+              "instructions_per_command": 4635.125358581543,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2429687334,
+              "commands": 524288,
+              "instructions_per_command": 4634.260814666748,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 4828.108631134033,
+          "minimum": 4821.986827850342,
+          "maximum": 4829.514942169189,
+          "span_percent": 0.15592263749623714,
+          "max_deviation_from_median_percent": 0.12679506099376037,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2531319418,
+              "commands": 524288,
+              "instructions_per_command": 4828.108631134033,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2532056730,
+              "commands": 524288,
+              "instructions_per_command": 4829.514942169189,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2528109830,
+              "commands": 524288,
+              "instructions_per_command": 4821.986827850342,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 4827.036668777466,
+          "minimum": 4821.701383590698,
+          "maximum": 4828.316207885742,
+          "span_percent": 0.13703695971133506,
+          "max_deviation_from_median_percent": 0.11052920358524716,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2527960175,
+              "commands": 524288,
+              "instructions_per_command": 4821.701383590698,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2531428248,
+              "commands": 524288,
+              "instructions_per_command": 4828.316207885742,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2530757401,
+              "commands": 524288,
+              "instructions_per_command": 4827.036668777466,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 4824.8864402771,
+          "minimum": 4819.908498764038,
+          "maximum": 4826.6397342681885,
+          "span_percent": 0.13951075507103142,
+          "max_deviation_from_median_percent": 0.10317220052075741,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2529630062,
+              "commands": 524288,
+              "instructions_per_command": 4824.8864402771,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2527020187,
+              "commands": 524288,
+              "instructions_per_command": 4819.908498764038,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2530549293,
+              "commands": 524288,
+              "instructions_per_command": 4826.6397342681885,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 4697.357721328735,
+          "minimum": 4691.23219871521,
+          "maximum": 4702.156705856323,
+          "span_percent": 0.23256706832246704,
+          "max_deviation_from_median_percent": 0.13040357956371848,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 2462768285,
+              "commands": 524288,
+              "instructions_per_command": 4697.357721328735,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 2465284335,
+              "commands": 524288,
+              "instructions_per_command": 4702.156705856323,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 2459556747,
+              "commands": 524288,
+              "instructions_per_command": 4691.23219871521,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.3615311952727138,
+      "hold_vs_part2_percent": -2.6865125820884628,
+      "hold_vs_merged_part2_percent": -2.6431444662361914
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2350.6619911193848,
+          "minimum": 2346.2124786376953,
+          "maximum": 2351.1035118103027,
+          "span_percent": 0.20807045807033758,
+          "max_deviation_from_median_percent": 0.18928763465352993,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1232655358,
+              "commands": 524288,
+              "instructions_per_command": 2351.1035118103027,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1230091048,
+              "commands": 524288,
+              "instructions_per_command": 2346.2124786376953,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1232423874,
+              "commands": 524288,
+              "instructions_per_command": 2350.6619911193848,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2557.526412963867,
+          "minimum": 2549.8503131866455,
+          "maximum": 2558.870710372925,
+          "span_percent": 0.3527000597356778,
+          "max_deviation_from_median_percent": 0.30013765403603393,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1336855921,
+              "commands": 524288,
+              "instructions_per_command": 2549.8503131866455,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1340880408,
+              "commands": 524288,
+              "instructions_per_command": 2557.526412963867,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1341585207,
+              "commands": 524288,
+              "instructions_per_command": 2558.870710372925,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2555.168113708496,
+          "minimum": 2551.408535003662,
+          "maximum": 2563.2651901245117,
+          "span_percent": 0.46402641991493887,
+          "max_deviation_from_median_percent": 0.3168901636089911,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1343889180,
+              "commands": 524288,
+              "instructions_per_command": 2563.2651901245117,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1339643980,
+              "commands": 524288,
+              "instructions_per_command": 2555.168113708496,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1337672878,
+              "commands": 524288,
+              "instructions_per_command": 2551.408535003662,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2546.737668991089,
+          "minimum": 2541.572368621826,
+          "maximum": 2553.8676528930664,
+          "span_percent": 0.48278566029578984,
+          "max_deviation_from_median_percent": 0.27996538429504364,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1332515894,
+              "commands": 524288,
+              "instructions_per_command": 2541.572368621826,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1335223999,
+              "commands": 524288,
+              "instructions_per_command": 2546.737668991089,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1338962164,
+              "commands": 524288,
+              "instructions_per_command": 2553.8676528930664,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2392.1753253936768,
+          "minimum": 2387.7054138183594,
+          "maximum": 2392.752944946289,
+          "span_percent": 0.21100172192015326,
+          "max_deviation_from_median_percent": 0.18685551714658608,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1254491656,
+              "commands": 524288,
+              "instructions_per_command": 2392.752944946289,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1254188817,
+              "commands": 524288,
+              "instructions_per_command": 2392.1753253936768,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1251845296,
+              "commands": 524288,
+              "instructions_per_command": 2387.7054138183594,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.7660273757403644,
+      "hold_vs_part2_percent": -6.378945770353106,
+      "hold_vs_merged_part2_percent": -6.069032766089455
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 128,
+      "arms": {
+        "pre": {
+          "median": 1887.3396129608154,
+          "minimum": 1884.1499462127686,
+          "maximum": 1892.995252609253,
+          "span_percent": 0.46866532847302766,
+          "max_deviation_from_median_percent": 0.2996620009244156,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 992474695,
+              "commands": 524288,
+              "instructions_per_command": 1892.995252609253,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 987837207,
+              "commands": 524288,
+              "instructions_per_command": 1884.1499462127686,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 989509511,
+              "commands": 524288,
+              "instructions_per_command": 1887.3396129608154,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2094.2249298095703,
+          "minimum": 2093.7546310424805,
+          "maximum": 2102.5851879119873,
+          "span_percent": 0.42166229347244977,
+          "max_deviation_from_median_percent": 0.39920535676066077,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1102360183,
+              "commands": 524288,
+              "instructions_per_command": 2102.5851879119873,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1097977000,
+              "commands": 524288,
+              "instructions_per_command": 2094.2249298095703,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1097730428,
+              "commands": 524288,
+              "instructions_per_command": 2093.7546310424805,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2100.7308807373047,
+          "minimum": 2094.395164489746,
+          "maximum": 2102.001377105713,
+          "span_percent": 0.3620745848843429,
+          "max_deviation_from_median_percent": 0.3015958067572613,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1102054098,
+              "commands": 524288,
+              "instructions_per_command": 2102.001377105713,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1098066252,
+              "commands": 524288,
+              "instructions_per_command": 2094.395164489746,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1101387992,
+              "commands": 524288,
+              "instructions_per_command": 2100.7308807373047,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2094.2775230407715,
+          "minimum": 2088.8150844573975,
+          "maximum": 2098.2315254211426,
+          "span_percent": 0.4496271797862292,
+          "max_deviation_from_median_percent": 0.2608268733860484,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1095140683,
+              "commands": 524288,
+              "instructions_per_command": 2088.8150844573975,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1100077610,
+              "commands": 524288,
+              "instructions_per_command": 2098.2315254211426,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1098004574,
+              "commands": 524288,
+              "instructions_per_command": 2094.2775230407715,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 1920.0975933074951,
+          "minimum": 1920.0891456604004,
+          "maximum": 1931.8201847076416,
+          "span_percent": 0.6109605620115236,
+          "max_deviation_from_median_percent": 0.6105206027550686,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1012830141,
+              "commands": 524288,
+              "instructions_per_command": 1931.8201847076416,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1006684127,
+              "commands": 524288,
+              "instructions_per_command": 1920.0975933074951,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1006679698,
+              "commands": 524288,
+              "instructions_per_command": 1920.0891456604004,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.7356696230886426,
+      "hold_vs_part2_percent": -8.59859247493957,
+      "hold_vs_merged_part2_percent": -8.316945954726052
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arms": {
+        "pre": {
+          "median": 2523.147378921509,
+          "minimum": 2522.4175357818604,
+          "maximum": 2534.060884475708,
+          "span_percent": 0.46146129992709645,
+          "max_deviation_from_median_percent": 0.43253539786740774,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1328577713,
+              "commands": 524288,
+              "instructions_per_command": 2534.060884475708,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1322855893,
+              "commands": 524288,
+              "instructions_per_command": 2523.147378921509,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1322473245,
+              "commands": 524288,
+              "instructions_per_command": 2522.4175357818604,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 2524.1575145721436,
+          "minimum": 2515.17356300354,
+          "maximum": 2526.314458847046,
+          "span_percent": 0.4413708645038459,
+          "max_deviation_from_median_percent": 0.3559188171395214,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1323385495,
+              "commands": 524288,
+              "instructions_per_command": 2524.1575145721436,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1324516355,
+              "commands": 524288,
+              "instructions_per_command": 2526.314458847046,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1318675317,
+              "commands": 524288,
+              "instructions_per_command": 2515.17356300354,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 2523.42706489563,
+          "minimum": 2514.4847469329834,
+          "maximum": 2526.1033573150635,
+          "span_percent": 0.46042980768935476,
+          "max_deviation_from_median_percent": 0.35437196053916237,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1324405677,
+              "commands": 524288,
+              "instructions_per_command": 2526.1033573150635,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1318314179,
+              "commands": 524288,
+              "instructions_per_command": 2514.4847469329834,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1323002529,
+              "commands": 524288,
+              "instructions_per_command": 2523.42706489563,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 2515.3812217712402,
+          "minimum": 2512.962543487549,
+          "maximum": 2537.3346824645996,
+          "span_percent": 0.9689242634915118,
+          "max_deviation_from_median_percent": 0.8727687279902863,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1330294126,
+              "commands": 524288,
+              "instructions_per_command": 2537.3346824645996,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1317516106,
+              "commands": 524288,
+              "instructions_per_command": 2512.962543487549,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1318784190,
+              "commands": 524288,
+              "instructions_per_command": 2515.3812217712402,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 2527.9521160125732,
+          "minimum": 2526.185745239258,
+          "maximum": 2537.966787338257,
+          "span_percent": 0.4660310622331593,
+          "max_deviation_from_median_percent": 0.39615747712342286,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 1330625531,
+              "commands": 524288,
+              "instructions_per_command": 2537.966787338257,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 1324448872,
+              "commands": 524288,
+              "instructions_per_command": 2526.185745239258,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 1325374959,
+              "commands": 524288,
+              "instructions_per_command": 2527.9521160125732,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 0.19042633542549758,
+      "hold_vs_part2_percent": 0.17932165267993128,
+      "hold_vs_merged_part2_percent": 0.4997609957698934
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 18198.48531150818,
+          "minimum": 18186.53583908081,
+          "maximum": 18208.451345443726,
+          "span_percent": 0.1204248924445175,
+          "max_deviation_from_median_percent": 0.06566190659731266,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9534982502,
+              "commands": 524288,
+              "instructions_per_command": 18186.53583908081,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9546472539,
+              "commands": 524288,
+              "instructions_per_command": 18208.451345443726,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9541247467,
+              "commands": 524288,
+              "instructions_per_command": 18198.48531150818,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 18417.220964431763,
+          "minimum": 18410.790967941284,
+          "maximum": 18417.453296661377,
+          "span_percent": 0.03617445179682314,
+          "max_deviation_from_median_percent": 0.03491295729630675,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9652556775,
+              "commands": 524288,
+              "instructions_per_command": 18410.790967941284,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9656049754,
+              "commands": 524288,
+              "instructions_per_command": 18417.453296661377,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9655927945,
+              "commands": 524288,
+              "instructions_per_command": 18417.220964431763,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 18427.802228927612,
+          "minimum": 18412.924243927002,
+          "maximum": 18442.447408676147,
+          "span_percent": 0.16020990665289758,
+          "max_deviation_from_median_percent": 0.08073662184878007,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9661475575,
+              "commands": 524288,
+              "instructions_per_command": 18427.802228927612,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9669153867,
+              "commands": 524288,
+              "instructions_per_command": 18442.447408676147,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9653675226,
+              "commands": 524288,
+              "instructions_per_command": 18412.924243927002,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 18424.55562400818,
+          "minimum": 18402.6369972229,
+          "maximum": 18427.963651657104,
+          "span_percent": 0.13746141264434145,
+          "max_deviation_from_median_percent": 0.11896420859517057,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9661560207,
+              "commands": 524288,
+              "instructions_per_command": 18427.963651657104,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9648281746,
+              "commands": 524288,
+              "instructions_per_command": 18402.6369972229,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9659773419,
+              "commands": 524288,
+              "instructions_per_command": 18424.55562400818,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 18471.918226242065,
+          "minimum": 18465.658319473267,
+          "maximum": 18479.685474395752,
+          "span_percent": 0.07593772747736466,
+          "max_deviation_from_median_percent": 0.042048952678081966,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 9684605063,
+              "commands": 524288,
+              "instructions_per_command": 18471.918226242065,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 9681323069,
+              "commands": 524288,
+              "instructions_per_command": 18465.658319473267,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 9688677338,
+              "commands": 524288,
+              "instructions_per_command": 18479.685474395752,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": 1.5025036977169615,
+      "hold_vs_part2_percent": 0.23939912511758976,
+      "hold_vs_merged_part2_percent": 0.25706238565759154
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arms": {
+        "pre": {
+          "median": 63823.27388191223,
+          "minimum": 63795.17842292786,
+          "maximum": 64096.96465873718,
+          "span_percent": 0.4728466865671922,
+          "max_deviation_from_median_percent": 0.42882597550752755,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 33605269407,
+              "commands": 524288,
+              "instructions_per_command": 64096.96465873718,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 33461776617,
+              "commands": 524288,
+              "instructions_per_command": 63823.27388191223,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 33447046505,
+              "commands": 524288,
+              "instructions_per_command": 63795.17842292786,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part1": {
+          "median": 63829.71865081787,
+          "minimum": 63687.605836868286,
+          "maximum": 63877.9946975708,
+          "span_percent": 0.2982762022562591,
+          "max_deviation_from_median_percent": 0.2226436477450524,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 33465155532,
+              "commands": 524288,
+              "instructions_per_command": 63829.71865081787,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 33390647489,
+              "commands": 524288,
+              "instructions_per_command": 63687.605836868286,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 33490466084,
+              "commands": 524288,
+              "instructions_per_command": 63877.9946975708,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "part2": {
+          "median": 64069.058000564575,
+          "minimum": 63916.714738845825,
+          "maximum": 64070.1771812439,
+          "span_percent": 0.23952660954796462,
+          "max_deviation_from_median_percent": 0.23777977462600988,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 33510766537,
+              "commands": 524288,
+              "instructions_per_command": 63916.714738845825,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 33590638281,
+              "commands": 524288,
+              "instructions_per_command": 64069.058000564575,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 33591225054,
+              "commands": 524288,
+              "instructions_per_command": 64070.1771812439,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "merged-part2": {
+          "median": 63966.691637039185,
+          "minimum": 63872.46162414551,
+          "maximum": 64019.35312843323,
+          "span_percent": 0.22963748871242837,
+          "max_deviation_from_median_percent": 0.1473110621827344,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 33487565160,
+              "commands": 524288,
+              "instructions_per_command": 63872.46162414551,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 33564578613,
+              "commands": 524288,
+              "instructions_per_command": 64019.35312843323,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 33536968825,
+              "commands": 524288,
+              "instructions_per_command": 63966.691637039185,
+              "counter_running_percent": 100.0
+            }
+          ]
+        },
+        "hold": {
+          "median": 63443.95819282532,
+          "minimum": 63109.680671691895,
+          "maximum": 63823.119565963745,
+          "span_percent": 1.1245182592540879,
+          "max_deviation_from_median_percent": 0.5976319636080113,
+          "repeats": [
+            {
+              "repeat": 0,
+              "instructions": 33461695711,
+              "commands": 524288,
+              "instructions_per_command": 63823.119565963745,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 1,
+              "instructions": 33262905953,
+              "commands": 524288,
+              "instructions_per_command": 63443.95819282532,
+              "counter_running_percent": 100.0
+            },
+            {
+              "repeat": 2,
+              "instructions": 33087648260,
+              "commands": 524288,
+              "instructions_per_command": 63109.680671691895,
+              "counter_running_percent": 100.0
+            }
+          ]
+        }
+      },
+      "hold_vs_pre_percent": -0.5943218923377902,
+      "hold_vs_part2_percent": -0.9756656758302062,
+      "hold_vs_merged_part2_percent": -0.8171963108237201
+    }
+  ],
+  "over_two_percent_deviations": [
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part2",
+      "max_deviation_percent": 2.110047684163103
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "hold",
+      "max_deviation_percent": 2.644844408214701
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "hold",
+      "max_deviation_percent": 14.37572941084872
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "hold",
+      "max_deviation_percent": 3.2583598089601074
+    }
+  ],
+  "throughput_measured": false,
+  "parser_pass_counts_measured": false,
+  "activity_before_pricing": {
+    "sample_seconds": 1.0580428773537278,
+    "ticks_per_second": 100,
+    "processes": [
+      {
+        "name": "python3",
+        "ticks": 13,
+        "cpu": 8,
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "pid": 3558254,
+        "delta_cpu_ticks": 7,
+        "intersects_lane": true
+      },
+      {
+        "name": "claude",
+        "ticks": 4642946,
+        "cpu": 64,
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          216,
+          217,
+          218,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235,
+          236,
+          237,
+          238,
+          239,
+          240,
+          241,
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255
+        ],
+        "pid": 2715045,
+        "delta_cpu_ticks": 2,
+        "intersects_lane": true
+      },
+      {
+        "name": "systemd-oomd",
+        "ticks": 25876,
+        "cpu": 240,
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          216,
+          217,
+          218,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235,
+          236,
+          237,
+          238,
+          239,
+          240,
+          241,
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255
+        ],
+        "pid": 699729,
+        "delta_cpu_ticks": 1,
+        "intersects_lane": true
+      },
+      {
+        "name": "2.1.259",
+        "ticks": 505988,
+        "cpu": 161,
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          216,
+          217,
+          218,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235,
+          236,
+          237,
+          238,
+          239,
+          240,
+          241,
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255
+        ],
+        "pid": 1824034,
+        "delta_cpu_ticks": 1,
+        "intersects_lane": true
+      }
+    ]
+  },
+  "activity_after_pricing": {
+    "sample_seconds": 1.0582789154723287,
+    "ticks_per_second": 100,
+    "processes": [
+      {
+        "name": "python3",
+        "ticks": 12,
+        "cpu": 10,
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "pid": 3604879,
+        "delta_cpu_ticks": 6,
+        "intersects_lane": true
+      },
+      {
+        "name": "kworker/1:3-events",
+        "ticks": 4277,
+        "cpu": 1,
+        "affinity": [
+          1
+        ],
+        "pid": 699731,
+        "delta_cpu_ticks": 1,
+        "intersects_lane": true
+      },
+      {
+        "name": "claude",
+        "ticks": 4643862,
+        "cpu": 32,
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          216,
+          217,
+          218,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235,
+          236,
+          237,
+          238,
+          239,
+          240,
+          241,
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255
+        ],
+        "pid": 2715045,
+        "delta_cpu_ticks": 1,
+        "intersects_lane": true
+      }
+    ]
+  },
+  "lane_listeners_before_pricing": [],
+  "image_section_totals": {
+    "pre": {
+      "text": 11030999,
+      "data": 120873,
+      "bss": 1198608
+    },
+    "part1": {
+      "text": 11031631,
+      "data": 120873,
+      "bss": 1198608
+    },
+    "part2": {
+      "text": 11033587,
+      "data": 120873,
+      "bss": 1198608
+    },
+    "hold": {
+      "text": 11036091,
+      "data": 120873,
+      "bss": 1198608
+    },
+    "merged-part2": {
+      "text": 11034059,
+      "data": 120873,
+      "bss": 1198608
+    }
+  }
+}

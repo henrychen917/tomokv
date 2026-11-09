@@ -1,27 +1,26 @@
-// topology.h — what the machine actually looks like, discovered rather than assumed.
+// topology.h — owns affinity-filtered L3 domains and full sysfs SMT sibling lists.
+// Server initialization and placement code include this header normally; no fixed include point.
 //
 // DOMAINS ARE SHARED-L3 CPU GROUPS, and this file discovers those boundaries without imposing a
 // placement unit on them. Individual threads may be placed anywhere in the allowed affinity mask;
 // the domain lookup says which cache each chosen cpu belongs to.
 //
 // Nothing here DECIDES placement (that is placement.h) and nothing here is consulted on the hot
-// path. It records what a later flip/LB controller needs in order to decide:
+// path. Its CPU/domain lookup supports placement and the flip/LB controller's interpretation of:
 //
 //   - which L3 domain each CPU belongs to
-//   - which domain a worker is currently running in
-//   - which domain a shard's working set is currently resident in
-//   - how many ops were executed from a FOREIGN domain (the actionable signal)
+//   - a worker's latched CPU/domain (ThreadCtx::latch_placement)
+//   - a shard's residency and foreign-domain work (tracked outside Topology)
 //
-// WHY L3 AND NOT NUMA. This box is NPS1: one NUMA node over 128 GB, so there is no NUMA distance to
-// exploit and the only locality available is cache locality. A "NUMA-sharded" store here is really
-// an L3-sharded store, and calling it that avoids a whole class of wrong reasoning.
+// Domains describe shared L3 caches, independently of NUMA node boundaries. This also represents
+// cache locality on NPS1 systems, where multiple L3 domains share one NUMA node.
 //
 // WHY THIS MATTERS FOR MIGRATION, which is the part that is easy to miss: an L3 domain is not
 // allocated into, it is filled by access. Moving a shard from a worker in domain A to a worker in
 // domain B does not move its memory — it invalidates its residency. The new worker must re-pull the
-// working set through the fabric, and on this box a CCX-to-fabric link saturates around 51 GB/s
-// where a single core can already pull 50. So shard migration is NOT free, and an LB that treats it
-// as free will thrash. resident_estimate() exists so the cost can be priced.
+// working set through the fabric. The store's resident_estimate() supplies a footprint for pricing
+// that cost; Topology does not measure memory residency or bandwidth.
+// An LB that treats migration as free can thrash between placements.
 #pragma once
 #include <sched.h>
 #include <algorithm>
@@ -35,6 +34,12 @@ namespace tomo {
 
 inline constexpr uint32_t kNoDomain = UINT32_MAX;
 
+// Owns vectors describing the selected CPUs. Server::prepare_boot populates them before workers start;
+// direct users must serialize mutation against queries. No atomic publication is provided here.
+// discover falls back to one domain per CPU when L3 sysfs is unreadable, returning false only for
+// affinity-query failure or an empty mask. declare and discover_thread_siblings return false on
+// rejected input or missing required sysfs. Failed calls can leave partial vectors. cpus_in
+// requires a valid domain; vector allocation can throw.
 class Topology {
 public:
     // Discovers L3 domains for the CPUs this process is ALLOWED to run on. Respecting the affinity
@@ -42,6 +47,9 @@ public:
     // otherwise is how threads end up "placed" onto cpus they can never run on.
     // TOMOKV_L3_DOMAINS overrides broken sysfs: comma-separated domains, '+' joins CPU ranges.
     // Every declared CPU must belong to the allowed affinity mask.
+    // Called by Server::prepare_boot and fixtures with exclusive access. Replaces the domain vectors with
+    // the declared subset, rejects duplicates/out-of-affinity CPUs, and returns false on malformed
+    // syntax or affinity-query failure. It provides no rollback, retry protocol or publication barrier.
     bool declare(const char* spec) {
         cpu_set_t allowed;
         CPU_ZERO(&allowed);

@@ -46,9 +46,10 @@
 
 using namespace tomo;
 
-// Supply the ordinary integer reply template in main.o for both database
-// runtimes. Link order selects this weak definition rather than the differently
-// inlined xshard.o definition; it also serves integer replies outside WAIT.
+// Explicitly instantiate reply_int<Op::Sink> in main.o for both database runtimes:
+// WAIT no longer pulls it in. The linker keeps one weak definition for every caller
+// (INCR and other integer replies); link order selects main.o's ordinarily inlined
+// copy rather than xshard.o's differently inlined one.
 template void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long);
 
 // Signal-handler state. A handler may only touch lock-free atomics, so the thread table is a
@@ -75,8 +76,9 @@ static_assert(std::atomic<uint8_t>::is_always_lock_free);
 
 // Async handler after arm's release publication; borrows only published live
 // server/thread pointers. Requests a persisted stop while owners remain alive,
-// or sets relaxed stop flags and rings the doorbell. A repeated SIGINT exits
-// immediately with status 1. No allocation, locks or waits are allowed here.
+// or sets relaxed stop flags and rings the doorbell. SIGINT while a signal stop is
+// pending or shutdown has begun (after SIGTERM, SIGINT or SHUTDOWN) exits immediately
+// with status 1. No allocation, locks or waits are allowed here.
 static void on_signal(int sig) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
     if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
@@ -362,8 +364,9 @@ int main(int argc, char** argv) {
     }
 
     // Phase 5: own the Unix pathname, arm signal delivery and select the runtime.
-    // LateUnixListener owns the pathname and any untransferred fd, and checks
-    // for non-socket or already-accepting paths. Open only after the selected
+    // LateUnixListener owns the pathname and any untransferred fd. open() refuses a
+    // socket with a live listener (and connect errors other than ECONNREFUSED); it
+    // unlinks a stale socket or a non-socket entry before bind. Open only after the selected
     // runtime's load barrier so clients cannot connect before shard recovery.
     LateUnixListener unix_listener(cfg.unixsocket);
     SignalDoorbell signal_doorbell;
@@ -581,8 +584,9 @@ int main(int argc, char** argv) {
     const uint32_t unix_owner = srv.unix_owner_tid();
     uint32_t io_boot_slot = 0;
     for (uint32_t tid : srv.placement().ifid_threads())
-        // Runs on physical worker tid with one boot slot. Owns both role guards
-        // and any transferred listener until join. The boot mutex publishes
+        // Runs on physical worker tid with one boot slot. Owns its DatabaseMap,
+        // IoLoop-issuer, snapshot and AOF worker guards across role changes, borrowing
+        // its loop and any transferred listener until join. The boot mutex publishes
         // setup/readiness; failure records the slot and stops all workers.
         pool.emplace_back([&, tid, slot = io_boot_slot++] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);

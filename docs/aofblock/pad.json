@@ -1,0 +1,50 @@
+{
+  "kind": "A: behaviour twin; PRE behaviour, exact POST size/layout",
+  "post": "build/tomokv",
+  "pad": "build/aofblock/PAD-A",
+  "post_sha256": "5a233f162bc19c4040afd23dd81aad981a261fdc5fc548a335bcafed6446f3c2",
+  "pad_sha256": "971677cbfbb0f847d772a0455223c190f52c69ed0ed3982758e37fb431fe06e8",
+  "patches": [
+    {
+      "function": "tomo_db0::(anonymous namespace)::blocking_finish_cancelled(tomo_db0::BlockingState&, tomo_db0::ThreadCtx*, tomo_db0::Ring*)",
+      "address": "0x178cd2",
+      "file_offset": 1543378,
+      "pre": "e829ef1c00",
+      "pad": "31c0909090",
+      "purpose": "skip added cancellation deferral and return false"
+    },
+    {
+      "function": "tomo::(anonymous namespace)::blocking_finish_cancelled(tomo::BlockingState&, tomo::ThreadCtx*, tomo::Ring*)",
+      "address": "0x5a3a32",
+      "file_offset": 5913138,
+      "pre": "e809dc1c00",
+      "pad": "31c0909090",
+      "purpose": "skip added cancellation deferral and return false"
+    },
+    {
+      "function": "tomo::DatabaseMap::join_workers(tomo::Server&, std::vector<std::thread, std::allocator<std::thread> >&)",
+      "address": "0x884c86",
+      "file_offset": 8932486,
+      "pre": "0f85a4000000",
+      "pad": "909090909090",
+      "purpose": "retain PRE worker deadline instead of AOF extension"
+    },
+    {
+      "function": "tomo::AofManager::defer_completion(unsigned int, tomo::Op&, tomo::Client*)",
+      "address": "0x771760",
+      "file_offset": 7804768,
+      "pre": "31c0ba03000000",
+      "pad": "b801000000b203",
+      "purpose": "Free claim restored to PRE Issued claim; DL remains AofWait"
+    },
+    {
+      "function": "tomo_db0::AofManager::defer_completion(unsigned int, tomo_db0::Op&, tomo_db0::Client*)",
+      "address": "0x347d20",
+      "file_offset": 3439904,
+      "pre": "31c0ba03000000",
+      "pad": "b801000000b203",
+      "purpose": "Free claim restored to PRE Issued claim; DL remains AofWait"
+    }
+  ],
+  "byte_count": 247476976
+}

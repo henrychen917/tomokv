@@ -1,8 +1,10 @@
 // typeval.h — collection values and their compact encoding.
 //
-// A collection is one shard-owned object. KvObj holds only its pointer and type tag; the concrete
-// per-type struct below owns the representation. There is deliberately no base-class vtable: the
-// outer Type tag is already present, so destruction and accounting dispatch on that one byte.
+// Included normally by kvobj.h, command handlers and persistence code. External collection
+// wrappers own the representations below; small collections can instead live in a KvObj tail.
+// The outer Type tag selects destruction/accounting without a base-class vtable. Mutating a
+// resident collection requires shard ownership; private construction requires caller exclusivity.
+// These containers supply no cross-thread publication or reclamation barrier.
 #pragma once
 #include <cstdint>
 #include <cstring>
@@ -20,7 +22,7 @@ namespace tomo {
 // Redis-compatible starting points. Lists are the one intentional translation: Redis/Valkey's
 // default -2 is an 8 KiB listpack NODE budget rather than an element-length limit. A single Compact
 // is our whole small list, so list.max_value is its aggregate payload budget and max_entries is
-// unlimited. The list lane must use CompactValue::list_fits(), not compact_fits().
+// unlimited. List callers must use CompactValue::list_fits(), not compact_fits().
 struct CompactLimit {
     uint32_t max_entries;
     uint32_t max_value;
@@ -29,7 +31,7 @@ struct CompactLimit {
 // Redis list-max-listpack-size is signed: negative values select 4/8/16/32/64 KiB,
 // values below -5 clamp to 64 KiB, zero allows one element, positives bound the count.
 // Count mode retains the reference's 8 KiB safety ceiling. The small representation keeps
-// its existing payload accounting, so the default -2 reproduces today's TypeLimits exactly.
+// aggregate payload accounting, so -2 selects TypeLimits' default 8 KiB list budget.
 inline constexpr CompactLimit list_compact_limit(int32_t fill) {
     if (fill < 0) {
         const uint32_t level = fill < -5 ? 5 : static_cast<uint32_t>(-fill);
@@ -66,15 +68,18 @@ struct StreamHeader {
 };
 static_assert(sizeof(StreamHeader) == 56, "stream packed header must remain 56 bytes");
 
-// [ULEB128 payload length][payload bytes], repeated to EOF. There is no container header and no
-// back-length. The byte vector is a gap-at-the-ends buffer. Its circular side index is deliberately
-// absent through kIndexCutover entries: Redis/Valkey's listpack and Dragonfly's packed small values
-// establish that a linear walk of a few cache-resident bytes beats another allocation. Once the
-// collection crosses the cutover the index is built once and retained. Interior mutations still
-// move the affected suffix. Every mutation invalidates prior Entry slices and offsets.
+// Owns a gap-at-the-ends byte vector of [ULEB128 payload length][payload] entries, with no
+// container header/back-length. Caller-serialized use is required, on the collection's owner or
+// during private construction. No atomics publish its storage. The circular offset index is
+// allocated after kIndexCutover entries and retained until clear; interior mutations move suffixes.
+// Every mutation can invalidate borrowed Entry slices/offsets, even a failed growth sequence that
+// has already relocated the buffer. Input slices must survive relocation and not alias writes;
+// encoded spans must fit uint32_t. Checked bounds/allocation failures return false; no retry/wait
+// is performed. Vector copying/allocation outside those guarded paths can still throw.
 class Compact {
 public:
     static constexpr uint32_t kIndexCutover = 16;
+    // Borrowed payload and absolute buffer coordinates, valid until the next mutation.
     struct Entry {
         Slice value;
         uint32_t offset = 0;
@@ -82,6 +87,8 @@ public:
         uint32_t index = 0;
     };
 
+    // Borrows its Compact; dereference/advance require a current, non-end position. No lifetime
+    // retention or mutation detection is provided.
     class Iterator {
     public:
         Iterator() = default;
@@ -114,8 +121,10 @@ public:
     uint64_t payload_bytes() const { return payload_bytes_; }
     size_t encoded_bytes() const { return end_ - begin_; }
     // Logical offset of an entry (0 = first byte). Entry.offset is ABSOLUTE (buffer-internal);
-    // every offset-taking API here (decode/at_offset/insert/erase_range) takes LOGICAL. This is
-    // the only sanctioned bridge between the two spaces -- zset's ordered inserts live on it.
+    // public offset-taking APIs use LOGICAL coordinates. The private three-argument decode takes
+    // an absolute offset plus index; its two-argument overload accepts a logical offset. Zset's
+    // ordered inserts use logical(), the only sanctioned conversion between the spaces; never
+    // derive a logical offset from Entry.offset directly.
     uint32_t logical(const Entry& entry) const { return entry.offset - begin_; }
     size_t capacity_bytes() const {
         return (data_.capacity() ? good_size(data_.capacity()) : 0) +
@@ -187,11 +196,12 @@ public:
     // Insert at a LOGICAL entry boundary. Set's integer compact uses this to retain numeric order;
     // the offset is derived arithmetically from its fixed-width entries. As with every Compact
     // mutation, prior Entries are invalidated.
-    // Written for the set lane's sorted mid-inserts; the original predated the two-ended buffer
-    // and the circular offset index and maintained neither -- the first cross-lane merge crashed
-    // on offsets_.size()==0 (SIGFPE in offset_slot) the moment an int-compact promoted. The suffix
-    // shift plus a linear index fix-up is O(entries) -- bounded by the compact thresholds, and the
-    // byte memmove was already O(bytes) anyway.
+    // Maintain both the two-ended byte buffer and its optional circular index. offset_slot takes
+    // modulo offsets_.size(), so guard every offset_at/offset_set with !offsets_.empty() to avoid
+    // division by zero; ensure_offset_space may create the index during this insert. ensure_space
+    // may move begin_, so recompute the splice from at_index after both calls and update every
+    // shifted offset. Index fix-up is O(entries), bounded by the caller's compact limits; byte
+    // movement is O(bytes).
     bool insert(uint32_t logical, Slice value) {
         if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
         if (logical == end_ - begin_) return append(value);
@@ -482,8 +492,8 @@ private:
     // LOGICAL-offset decode for callers that track offsets rather than indexes (including set's
     // fixed-width index*span arithmetic). Logical offset 0 is the first entry regardless of the
     // two-ended buffer's begin_ -- absolute offsets shift whenever ensure_space recenters, so
-    // exposing them would silently invalidate every stored offset (that exact bug wedged the first
-    // cross-lane merge). Without the lazy index this rescans; after cutover the Entry's load-bearing
+    // exposing absolute offsets as logical ones would silently invalidate stored positions.
+    // Without the lazy index this rescans; after cutover the Entry's
     // index is derived by binary search over the circular offset index.
     bool decode(uint32_t logical, Entry& out) const {
         if (entries_ == 0) return false;
@@ -548,9 +558,14 @@ enum class CollectionEncoding : uint8_t {
     Btree = 3,
 };
 
-// Mutation funnels keep conversion inputs O(1). Promotion is one-way unless a lane explicitly
-// proves a hysteretic demotion policy; after promotion, the lane updates the three expanded
-// counters alongside its backing structure instead of inspecting that structure to make a choice.
+// Owns Compact storage and representation counters; derived wrappers own expanded structures.
+// Use under the same caller serialization as Compact. promote requires the expanded structure
+// to own copies before clearing compact bytes, and publishes no cross-thread state. The command
+// handlers maintain expanded counts alongside mutations so encoding choices need no scan.
+// Guarded compact mutations return false when expanded or when Compact refuses the operation;
+// this class has no demotion operation or waiting policy. A handler may demote only by resetting
+// the base: list demote_shrunk_list assigns CompactValue{} then replace_compact, so every counter
+// must be valid in its default state.
 class CompactValue {
 public:
     CollectionEncoding encoding() const { return encoding_; }
@@ -622,7 +637,7 @@ public:
 
     // Hash Compact entries each hold one encoded field/value pair. The outer Compact entry count
     // is therefore already the logical hash length, but its payload includes the pair's small
-    // field-length prefix. Let that lane install its maintained logical payload total without
+    // field-length prefix. Let the hash handler install its maintained logical payload total without
     // teaching the type-independent container about a hash-specific inner format.
     void promote(CollectionEncoding to, uint64_t expanded_allocation_bytes,
                  uint32_t logical_entries, uint64_t logical_payload_bytes) {
@@ -680,11 +695,13 @@ private:
     uint64_t expanded_allocation_bytes_ = 0;
 };
 
-// Separate concrete types make the outer destructor switch exhaustive and give each follow-up lane
-// a stable place to add its expanded backing structure without changing KvObj or Op.
+// Concrete collection types own their expanded storage; KvObj's Type selects their destructors.
 class HashFieldMap;
 class HashFieldTtl;
 
+// Owns fields and optional field-TTL state; ~HashVal deletes both. The hash handler serializes
+// access and maintains compact_payload_bytes/ttl_bytes separately from Compact's encoded totals.
+// Construction does not allocate those side tables; their failure handling belongs to handlers.
 struct HashVal : CompactValue {
     explicit HashVal(uint64_t seed = 0);
     ~HashVal();
@@ -695,7 +712,7 @@ struct HashVal : CompactValue {
 
     // kvobj_size() dispatches statically on HashVal*, so hiding the base accessor here is enough to
     // fold the field-TTL side table into the store's byte accounting. `ttl_bytes` is a cached total
-    // maintained by the TTL lane: a call into HashFieldTtl here would put an out-of-line call on
+    // maintained by the field-TTL helpers: a call into HashFieldTtl here would put an out-of-line call on
     // every hash footprint sample, and a TTL-free hash must not pay for one.
     uint64_t allocation_bytes() const { return CompactValue::allocation_bytes() + ttl_bytes; }
 
@@ -709,12 +726,16 @@ struct HashVal : CompactValue {
     HashFieldTtl* ttls = nullptr;
     uint64_t ttl_bytes = 0;
 };
+// Owns packed entries; prev/next are non-owning links managed by the containing ListVal.
 struct ListNode {
     ListNode* prev = nullptr;
     ListNode* next = nullptr;
     Compact values;
 };
 
+// Owns the head-to-tail ListNode chain; destruction deletes it. List handlers serialize changes
+// to links, values and allocation totals. Allocation/refusal is handled before attaching nodes;
+// this wrapper provides no publication barrier or concurrent traversal protection.
 struct ListVal : CompactValue {
     ListVal() = default;
     ListVal(const ListVal&) = delete;
@@ -733,6 +754,8 @@ struct ListVal : CompactValue {
     uint64_t node_allocation_bytes = 0;
 };
 
+// Owns one packed stream log; the StreamVal deque owns the node. Stream handlers serialize log
+// and counter changes. log entry 0 supplies the fixed header used by the record codec.
 struct StreamNode {
     Compact log;  // entry 0 is a fixed StreamHeader record
     StreamID base_id{};
@@ -749,7 +772,10 @@ struct StreamNodeIndex {
 
 // Streams deliberately reuse CompactValue for the embedded-to-external one-way transition. Once
 // external, the authoritative log is the deque below and the base class's expanded counters track
-// live entries/payload for the common footprint/accounting machinery.
+// live entries/payload for the common footprint/accounting machinery. Owns nodes, index, field
+// dictionaries and optional groups; ~StreamVal delegates group destruction to the command layer.
+// Stream handlers serialize mutation and handle allocation failures; no publication barrier lives
+// in this wrapper, and callers must keep it alive through any borrowed node/log access.
 struct StreamVal : CompactValue {
     StreamVal() = default;
     StreamVal(const StreamVal&) = delete;
@@ -765,7 +791,7 @@ struct StreamVal : CompactValue {
     std::vector<std::string> head_fields;
     std::vector<std::string> tail_fields;
     uint64_t node_allocation_bytes = 0;
-    void* groups = nullptr;  // phase-2, created on demand
+    void* groups = nullptr;  // opaque consumer-group state, created on demand
 };
 
 // Consumer-group state is intentionally opaque here: streams that never use XGROUP keep the
@@ -777,7 +803,10 @@ uint64_t stream_groups_allocation_bytes(const void* groups);
 // Expanded SET backing. Membership uses open addressing; live_slots_ is a dense side index used
 // only for O(1) uniform random selection/removal. Slots never move on erase, which also makes a
 // cursor stable between table rebuilds. A rebuild increments generation_ so SSCAN can restart and
-// preserve its full-iteration guarantee (duplicates remain permitted, as in Redis).
+// preserve its full-iteration guarantee (duplicates remain permitted, as in Redis). Owns member
+// strings, slots and the dense index; set handlers serialize access. Returned Slices borrow slots
+// and can be invalidated by erase/rebuild. InsertResult distinguishes duplicate/OOM; reserve
+// returns false on checked allocation/capacity failure. No atomic publication or wait is supplied.
 class SetMemberTable {
 public:
     enum class InsertResult : uint8_t { Inserted, Exists, Oom };
@@ -807,6 +836,7 @@ public:
 
 private:
     enum : uint8_t { Empty = 0, Live = 1, Tomb = 2 };
+    // Owns its member string; dense_pos indexes the separate live-slot vector.
     struct Slot {
         std::string value;
         uint64_t hash = 0;
@@ -835,6 +865,9 @@ inline uint64_t SetMemberTable::allocation_bytes() const {
 
 enum class SetSmallEncoding : uint8_t { Integer = 0, Generic = 1 };
 
+// Owns the expanded member table alongside CompactValue's small representation. Set handlers
+// serialize updates and call finish_table_promotion after copying all members. Small integer
+// payload accounting is distinct from encoded bytes; table/Compact operations report failures.
 struct SetVal : CompactValue {
     void finish_table_promotion(uint64_t logical_payload_bytes) {
         promote_with_payload(CollectionEncoding::Hashtable, table.allocation_bytes(),
@@ -847,6 +880,9 @@ struct SetVal : CompactValue {
     SetMemberTable table;
 };
 struct ZsetData;
+// Owns expanded when present; ~ZsetVal deletes it. Zset handlers serialize mutations and finish
+// expansion before clearing compact storage. The pointer itself provides no publication or
+// reader-lifetime mechanism; handler allocation paths report construction failures.
 struct ZsetVal : CompactValue {
     ZsetData* expanded = nullptr;
     ~ZsetVal();

@@ -1,8 +1,10 @@
-// Missed-wake safety net of every parked worker loop: the IO, fused and executor parks on both
+// Missed-wake safety net: shared park timeout for the IO, fused and executor loops on both
 // network engines, and the persistence pumps' waits. A parked thread wakes for a CQE (epoll: its
 // mailbox eventfd), its database or shutdown fd, or this timeout. The timeout is NOT the liveness
-// guarantee -- every producer owes its consumer a wake -- it only bounds the damage of a missed
-// one, which is why a missed wake shows up as a <= 50 ms blip that no gate threshold can see.
+// guarantee: every producer owes its consumer a wake. The ordinary timeout bounds the requested
+// wait at 50 ms; it does not bound scheduling delay after the wait finishes.
+// That short wait can hide missed wakes from production gate thresholds; the diagnostic below
+// stretches the net so tests can detect a missing wake.
 //
 // TEST-ONLY DIAGNOSTIC, never a runtime knob and never defined by a production build:
 //   make park-net-arm            -> build/park-net/tomokv with -DTOMO_PARK_NET_MS=$(PARK_NET_MS)

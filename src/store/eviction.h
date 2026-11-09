@@ -1,4 +1,7 @@
 // eviction.h — maxmemory policy names shared by boot/config parsing and the owner-local store.
+// Header-only conversions own no policy state. Parsing accepts case-insensitive names and leaves
+// the output unchanged on failure. kLruClockShift sets 256-second buckets; executor/fused loops
+// mask the shifted time to the five-bit clock passed to FlatStore.
 #pragma once
 
 #include <cstdint>

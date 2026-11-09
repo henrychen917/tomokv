@@ -1,0 +1,14 @@
+{"keys": ["control:0", "control:1"], "geometry": [[8, 0], [1, 1]]}
+1s PRE: zero wound counter and no DEBUG passed
+{"keys": ["control:0", "control:1"], "geometry": [[2, 2], [11, 3]]}
+1s zero wound counter rejected
+{"keys": ["control:0", "control:2"], "geometry": [[15, 7], [12, 3]]}
+2s PRE: zero wound counter and no DEBUG passed
+{"keys": ["control:0", "control:4"], "geometry": [[12, 3], [11, 7]]}
+2s zero wound counter rejected
+{"case": "T6", "leg": "redis-redis-0-EVAL", "value": {"counts": [3736, 4833, 4791, 3761, 4143, 4163, 3421, 4756, 4234, 3840, 4590, 3961, 1659, 1746, 1738, 1804, 4684, 4760, 5411, 4944], "attempts": [3736, 4833, 4791, 3761, 4143, 4163, 3421, 4756, 4234, 3840, 4590, 3961, 2057, 2153, 2135, 2198, 4684, 4760, 5411, 4944], "flips": 0, "saves": 0, "flip_max_seconds": 0}, "pass": true}
+{"keys": ["at412:T6:EVAL:0", "at412:T6:EVAL:1"], "geometry": [[0, 3], [7, 7]]}
+{"keys": ["at412:T6:EVAL:0", "at412:T6:EVAL:1"], "geometry": [[3, 7], [14, 3]]}
+{"keys": ["at412:T6:EVAL:0", "at412:T6:EVAL:1"], "geometry": [[10, 3], [9, 7]]}
+{"case": "T6", "leg": "2s-uring-0-EVAL", "unarmed_attempts": ["2s-uring-0-EVAL", "2s-uring-0-EVAL-reroll1", "2s-uring-0-EVAL-reroll2"], "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-t6wound/tests/at412.py\", line 1097, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-t6wound/tests/at412.py\", line 1049, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-t6wound/tests/at412.py\", line 575, in storm\n    raise WoundNotObserved('no group wound during the directed opening')\nat412.WoundNotObserved: no group wound during the directed opening\n"}
+Disabled older park: row failed after three fresh boots, all servers exited cleanly

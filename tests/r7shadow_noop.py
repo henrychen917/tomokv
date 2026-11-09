@@ -309,7 +309,31 @@ def wave15_inventory_delta(expected):
     return expected
 
 
-def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False):
+def paper1_inventory_delta(expected):
+    """The paper build's exact R7 named-inventory change over wave15: +1/0 bodies.
+
+    Attributed with this audit's own inventory (Binary, off_roles, category) against the
+    wave15 release bins/readability-pre-5c363128. These frozen links keep wave15's
+    inventory exactly: bins/aofblock-POST-e25f8b6f, bins/blockrace-POST-37ad4491 (xshard
+    budgets re-derived to 168498/171965), bins/tornread-PART1-2be78502,
+    bins/tornread-PART2-b30bc3bb and tornhold's pre-hold merge af4dffe990 (tornread +
+    aofblock + readability phase 2; docs/tornhold-integration.json). Only
+    bins/tornhold-HOLD-18eb7a98 changes it, and the combined landing's inventory equals
+    that link's, so the integration adds nothing of its own. t6wound is harness-only and
+    readability phase 2 is binary-identical. The added body stays in the strict byte
+    comparison; a missing or extra clone still fails.
+    """
+    ns, arms = 'tomo_db0', 'false, 32u, false'
+    op = _parser(ns, arms) + '::{lambda()#2}::operator()() const::{lambda(' + ns + '::Op const&)#1}'
+    # tornhold da3fcab014 (parse-pass read holds): DB0 too outlines wave15's tomo-only nested closure.
+    added = f'auto {_parser(ns, arms)}::{{lambda(auto:1&&)#1}}::operator()<{op}>({op}&&) const'
+    assert added not in expected
+    expected[added] = 1
+    return expected
+
+
+def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False,
+                     paper1=False):
     """Keep wave8's inventory, explicitly account for fused sweep outlining.
 
     X1 emits one full fused sweep instead of two hot/cold clone pairs in each
@@ -317,13 +341,15 @@ def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False, flipfix7=Fa
     instantiation is proved armed-only by off_roles(). No other body may vanish.
     """
     expected = exec1s_expected(snapshot_capped=snapshot_capped, wave14=wave14,
-                               flipfix7=flipfix7, wave15=wave15)
+                               flipfix7=flipfix7, wave15=wave15, paper1=paper1)
     actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
-    label = ('wave15' if wave15 else 'flipfix7' if flipfix7 else 'wave14' if wave14 else
-             'wave10' if snapshot_capped else 'exec1s')
+    label = ('paper1' if paper1 else 'wave15' if wave15 else 'flipfix7' if flipfix7 else
+             'wave14' if wave14 else 'wave10' if snapshot_capped else 'exec1s')
     assert actual == expected, label + ' named inventory differs'
     # wave15: +34/-8 bodies over flipfix7 (normal +18/-5, DB0 +16/-3).
-    return Counter({'tomo': 176, 'tomo_db0': 176} if wave15 else
+    # paper1: +1/0 bodies over wave15 (normal 0, DB0 +1).
+    return Counter({'tomo': 176, 'tomo_db0': 177} if paper1 else
+                   {'tomo': 176, 'tomo_db0': 176} if wave15 else
                    {'tomo': 163, 'tomo_db0': 163} if flipfix7 else
                    {'tomo': 163, 'tomo_db0': 162} if wave14 else
                    {'tomo': 164, 'tomo_db0': 162} if snapshot_capped else
@@ -337,7 +363,15 @@ def wave15_added_bodies(binary=None):
                                              wave15=True) if name not in base]
 
 
-def exec1s_expected(*, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False):
+def paper1_added_bodies(binary=None):
+    """Names paper1_inventory_delta adds over wave15, for missing-body controls."""
+    base = exec1s_expected(snapshot_capped=True, wave14=True, flipfix7=True, wave15=True)
+    return [name for name in exec1s_expected(snapshot_capped=True, wave14=True, flipfix7=True,
+                                             wave15=True, paper1=True) if name not in base]
+
+
+def exec1s_expected(*, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False,
+                    paper1=False):
     path = Path(__file__).resolve().parents[1] / 'docs/wave8/reorder-inventory.json'
     expected = json.loads(path.read_text())
     for ns in ('tomo', 'tomo_db0'):
@@ -387,6 +421,9 @@ def exec1s_expected(*, snapshot_capped=False, wave14=False, flipfix7=False, wave
     if wave15:
         assert flipfix7
         expected = wave15_inventory_delta(expected)
+    if paper1:
+        assert wave15
+        expected = paper1_inventory_delta(expected)
     return expected
 
 
@@ -395,7 +432,7 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15', 'paper1'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -475,12 +512,13 @@ if __name__ == '__main__':
         for binary in (pre, post): expected = latencyfix_inventory(binary)
     if args.inventory == 'wave8':
         for binary in (pre, post): expected = wave8_inventory(binary)
-    if args.inventory in ('exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15'):
+    if args.inventory in ('exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15', 'paper1'):
         for binary in (pre, post):
-            expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14', 'flipfix7', 'wave15'),
-                                       wave14=args.inventory in ('wave14', 'flipfix7', 'wave15'),
-                                       flipfix7=args.inventory in ('flipfix7', 'wave15'),
-                                       wave15=args.inventory == 'wave15')
+            expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14', 'flipfix7', 'wave15', 'paper1'),
+                                       wave14=args.inventory in ('wave14', 'flipfix7', 'wave15', 'paper1'),
+                                       flipfix7=args.inventory in ('flipfix7', 'wave15', 'paper1'),
+                                       wave15=args.inventory in ('wave15', 'paper1'),
+                                       paper1=args.inventory == 'paper1')
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):
