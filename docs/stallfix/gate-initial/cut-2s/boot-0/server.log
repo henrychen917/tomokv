@@ -1,0 +1,20 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 2 cpus [112,113]
+tomokv-cpp: 2 threads (1 io + 1 ex), 64 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ex cpu=113 L3=0 shards=64
+listening on 127.0.0.1:26120
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io         542207     299592    4001.1     104.1    4001.0         2       41
+t0 exec1s clients_live=0 clients_peak=17 io_enters=299506 ex_enters=0 io_waits=88 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 parked_polls=0 parked_visits=0 record_visits=0
+io_tenure t0/0 busy_ns=4001058576 idle_ns=104050636 entry_ns=5892557748416493 begin_ns=5892557748416523 end_ns=5892561853525735 exit_ns=5892561853525765 role_exit=0 stopped=1
+t1     ex        4337656   15326161    1940.0    1300.6    4002.6        39       41
+t1 exec1s clients_live=0 clients_peak=0 io_enters=2 ex_enters=1032589 io_waits=0 ex_waits=4 owner_passes=15326161 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 parked_polls=1087929 parked_visits=568522 record_visits=0
+wb: retired=542213 direct=0 sends=292388/292388 short=0 err=0 peer_aborts=0 bytes=575320792 zc_sends=0 zc_bytes=0 zc_releases=0 serves=355275 empty=62887
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=542207 executed=4337656 accepts=17 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":542207,"executed":4337656},"threads":[{"exec1s":{"clients_live":0,"clients_peak":17,"io_enters":299506,"ex_enters":0,"io_waits":88,"ex_waits":0,"owner_passes":0,"extra_passes":0,"eager_collapses":0,"wb_exec_holds":0,"blind_clear":0,"parked_polls":0,"parked_visits":0,"record_visits":0},"tid":0,"role":"io","ops":542207,"iterations":299592,"busy_ns":4001058576,"idle_ns":104050636,"cpu_ns":4001002396,"wake_tx":2,"wake_rx":41,"io_tenures":[{"entry_ns":5892557748416493,"begin_ns":5892557748416523,"end_ns":5892561853525735,"exit_ns":5892561853525765,"busy_ns":4001058576,"idle_ns":104050636,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"exec1s":{"clients_live":0,"clients_peak":0,"io_enters":2,"ex_enters":1032589,"io_waits":0,"ex_waits":4,"owner_passes":15326161,"extra_passes":0,"eager_collapses":0,"wb_exec_holds":0,"blind_clear":0,"parked_polls":1087929,"parked_visits":568522,"record_visits":0},"tid":1,"role":"ex","ops":4337656,"iterations":15326161,"busy_ns":1939954419,"idle_ns":1300577975,"cpu_ns":4002580902,"wake_tx":39,"wake_rx":41,"io_tenures":[]}],"wb":{"retired":542213,"direct":0,"sends_completed":292388,"sends_submitted":292388,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":575320792,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":355275,"serves_empty":62887},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":17,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}

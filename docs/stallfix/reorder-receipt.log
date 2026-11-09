@@ -1,0 +1,4 @@
+normalizer self-checks PASS
+strict_noop=True: 353/353 identical bodies
+PASS paper1 added bodies (1): a missing or an extra clone of each fails the strict inventory
+PASS missing policy symbol, missing split-local parser, missing fliplisten clone, missing execfair callback, missing notifycompat scan and changed opcode fail strict identity
