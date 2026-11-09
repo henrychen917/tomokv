@@ -169,7 +169,15 @@ def scheduled_server(argv, cores, port, directory, databases):
         assert not port_open(port), 'debugged server still listens'
 
 
+def loading_errors(c):
+    for line in c.cmd('INFO', 'errorstats').split(b'\r\n'):
+        if line.startswith(b'errorstat_LOADING:count='):
+            return int(line.split(b'=', 1)[1])
+    return 0
+
+
 def config_case(c, marker):
+    expect(loading_errors(c), 0)
     _, before = c.cmd('CONFIG', 'GET', 'slowlog-max-len')
     wanted = str(int(before) + 1).encode()
     command = ('CONFIG', 'SET', 'appendonly', 'no', 'slowlog-max-len', wanted)
@@ -186,6 +194,8 @@ def config_case(c, marker):
     expect(ping, b'+PONG')
     expect(c.cmd('PING', 's1pair-aligned'), b's1pair-aligned')
     expect(c.cmd('CONFIG', 'GET', 'slowlog-max-len'), [b'slowlog-max-len', before])
+    # One refused command, one error-stat entry (Redis afterErrorReply).
+    expect(loading_errors(c), 1)
     # Phase 2: the first owner fragment decided and applied the SET before the
     # reload began; the remaining SHARDS-1 re-checks see it. Applied means +OK.
     reply = c.cmd(*command)
@@ -199,6 +209,7 @@ def config_case(c, marker):
     expect(ping, b'+PONG')
     expect(c.cmd('CONFIG', 'GET', 'slowlog-max-len'), [b'slowlog-max-len', wanted])
     expect(c.cmd('CONFIG', 'GET', 'appendonly'), [b'appendonly', b'no'])
+    expect(loading_errors(c), 1)
 
 
 def main():
