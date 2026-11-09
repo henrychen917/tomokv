@@ -3,8 +3,11 @@
 // Entries retain displaced objects and group references until collapse/shutdown releases
 // them. Group epochs/abort flags are acquire-loaded; entry lists and accounting are owner
 // state. Armed physical exchanges release-publish slots inside a topology bracket, and
-// retired objects reach the owner's QSBR sink before reuse. Preparation may fail; cleanup
-// can defer while a cut, undecided entry, snapshot, or allocation prevents safe collapse.
+// retired objects reach the owner's QSBR sink before reuse. Preparation may fail; cleanup can
+// defer for an undecided entry, snapshot capture, capacity/allocation failure or a ticket at or
+// above atomic_read_floor(). That floor protects registered scatter/transaction snapshots;
+// plain-read cuts are unregistered and do not hold cleanup back. See
+// /home/user/Projects/round6-read/atomic-torn-plain-read-analysis.md for that limitation.
 // Main calls this only after every IO/ex thread has joined. It releases group references before
 // IO-owned arena pools are destroyed; the destructor repeats it harmlessly for early exits.
 void atomic_shutdown_release_records() { atomic_promote_all_for_shutdown(); }
@@ -336,8 +339,9 @@ void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& 
 //
 // Do not bound conflicts by the script's reserved ticket: a newer-ticket writer may have
 // read the pre-activation value, since validation precedes script installation. Ordering
-// that read-modify-write after the script could lose an update. Restart with a fresh cut;
-// this predicate does not establish a bound on retries under continued conflicting writes.
+// that read-modify-write after the script could lose an update. A restart is invisible to
+// clients; restart with a fresh cut. This predicate does not establish a bound on retries under
+// continued conflicting writes.
 bool atomic_script_changed(uint64_t hash, Slice key, uint64_t cut) const {
     if (!atomic_pending_ || !atomic_pending_->live) return false;
     const uint64_t bit = atomic_membership_bit(hash);
@@ -429,8 +433,9 @@ bool atomic_group_has_own_undecided(const ScatterState* group, uint32_t count,
 // unit publishes through, not just one: an EXEC's plain per-key installs use the transaction's
 // epoch, while each cross-shard child command lowered inside that EXEC keeps its own
 // ScatterState and therefore its own. Answering with only the transaction's word makes a
-// transaction wait against its own RENAME/LMPOP child. Group-pointer comparison has the same
-// hazard: an EXEC child's scatter record names a group, while that EXEC's plain installs do not.
+// transaction wait on its own RENAME/LMPOP child, which cannot decide before the transaction:
+// the EXEC hangs. Group-pointer comparison deadlocks the same way: an EXEC child's scatter
+// record names a group, while that EXEC's plain installs do not.
 // Plain single-command pseudo-entries
 // carry no group_epoch at all: they draw their ticket in the same owner turn that installs
 // them, so they are never undecided and are skipped here.
@@ -563,6 +568,8 @@ void atomic_finish_group_install(size_t parked_bytes, size_t installed_bytes) {
 // atomic_gauge_underflows rather than wrapping the accounting gauge. Tests require that
 // count to stay zero. In particular, mutating a parked predecessor can make collapse
 // subtract more than installation charged; resolver selection must protect that predecessor.
+// Do not abort here: failing the server over an accounting value is worse than carrying a
+// mis-sized gauge.
 void atomic_gauge_sub(size_t bytes) {
     if (__builtin_expect(bytes > atomic_version_bytes_, false)) {
         if (atomic_gauge_underflows_) (*atomic_gauge_underflows_)++;
@@ -885,10 +892,12 @@ uint32_t atomic_sweep(uint64_t floor, uint64_t cleanup_cutoff, uint32_t budget) 
     return atomic_collapse(floor, cleanup_cutoff) ? 1 : 0;
 }
 
-// Owner-side logical clear used by scatter FLUSH and the transaction helper. Cancel
-// matching units, then prepare copied-key tombstones for tracked keys before drawing one
-// ticket through the bound reserve/publish callback. Entries retain predecessors for older
-// cuts; the subsequent physical clear can reclaim unrelated keys. Preserve the caller's
+// Owner-side logical clear for FLUSHALL/FLUSHDB through Shard::watch_flush (multi.inc), and the
+// flush steps of DEBUG RELOAD/DEBUG LOADAOF (scatter_engine.inc). Cancel matching units, then
+// prepare copied-key tombstones for tracked keys before drawing one ticket through the bound
+// reserve/publish callback. Entries retain predecessors for registered scatter/transaction
+// snapshots older than the clear's ticket until collapse; plain-read cuts do not constrain
+// collapse. The subsequent physical clear can reclaim unrelated keys. Preserve the caller's
 // read context. Allocation failure discards prepared entries and returns false, but prior
 // unit cancellation is not rolled back; the caller may retry. Ticket binding is required
 // when records exist. Armed preparation publishes exclusions before physical exchanges.
@@ -1807,11 +1816,12 @@ __attribute__((noinline)) bool atomic_collapse_preserves_tickets(
     return true;
 }
 
-// Owner cleanup (or post-join shutdown) of a reclaimable prefix. floor/cutoff must reflect
-// the caller's reader lifetime protocol; snapshot capture blocks cleanup unless the range
-// flush caller has prepared pre-images. Acquire-load decisions, preserve suffix ticket
-// ordering, select winners and transfer/free predecessors, closing filter cells before
-// release-decrementing group pins. ReadLocal selects QSBR retirement at compile time.
+// Owner cleanup (or post-join shutdown) of a reclaimable prefix. Live cleanup samples cutoff
+// with atomic_snapshot() before floor with atomic_read_floor(); the floor protects registered
+// scatter/transaction snapshots only, not unregistered plain reads. Snapshot capture blocks
+// cleanup unless the range flush caller has prepared pre-images. Acquire-load decisions,
+// preserve suffix ticket ordering, select winners and transfer/free predecessors, closing filter
+// cells before release-decrementing group pins. ReadLocal selects QSBR retirement at compile time.
 // False means no eligible work or failed capacity/allocation preflight; records remain for
 // a later pass, though preflight may advance rehash. Armed retirement can wait for sink
 // capacity. This routine does not establish a per-call work bound.
@@ -1826,7 +1836,8 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
                                         : &FlatStore::atomic_exchange_physical;
     if (!atomic_pending_ || !atomic_pending_->live || (snapshot_active_ && !capture_prepared))
         return false;
-    // Phase 1: select a decided prefix below the reader floor and cleanup cutoff.
+    // Phase 1: select a decided prefix strictly below the registered-snapshot floor and at or
+    // below cleanup_cutoff. Aborted entries bypass these bounds; plain-read cuts are not tracked.
     uint64_t occurrences = 0;
     AtomicEntry* first_unselected = atomic_pending_->head;
     while (first_unselected) {
@@ -2090,9 +2101,12 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
                              owner.group_aborted->load(std::memory_order_acquire);
         if (aborted) return;
         uint64_t epoch = atomic_epoch(owner);
-        // Same-connection list order follows owner installation order. A wide MSET/DEL can
-        // wait on its last shard while a later MULTI/EXEC obtains a ticket first; raw ticket
-        // ranking could then restore the older group over an acknowledged transaction.
+        // For one connection on this key, list order is program order: owner tasks are posted to
+        // this shard in arrival order and drained in order, with parked tasks holding later
+        // same-key tasks behind them. A later same-key command cannot install ahead of an
+        // earlier one on this owner. A wide MSET/DEL can wait on its last shard while a later
+        // MULTI/EXEC obtains a ticket first; raw ticket ranking could then restore the older
+        // group over an acknowledged transaction.
         // When consecutive considered records share a connection, raise the later epoch to
         // the preceding epoch. Different-connection comparisons keep their ticket ordering.
         if (key.prev_set && owner.origin_conn_id == key.prev_conn_id && epoch < key.prev_epoch)

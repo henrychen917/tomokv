@@ -2,6 +2,7 @@
 // maintains deferred timers and synthetic receive holds. Complete buffered frames still use
 // ordinary admission; a FLIP must not wait behind its own dispatch pause. Retirement or output
 // progress renews the grace period for peers with stalled output.
+// Ordinary receives never enter this file.
 
 #include "io_loop.h"
 

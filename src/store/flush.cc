@@ -113,6 +113,9 @@ namespace {
 // mutation. Owns vectors but borrows record keys and parked-slot addresses; those records must
 // outlive the index. insert retains the first occurrence. Allocation can throw to the caller's
 // pre-mutation catch; find returns null on absence. No concurrent publication or waiting occurs.
+// Keys borrow record or ScatterState key storage (atomic_entry_key), never resident or parked
+// values: erase retires those values while the index is still probed, and unarmed retirement
+// can free them immediately.
 // Sixteen probes cap hash clustering; overflow uses a Patricia tree on hash, eight namespace
 // bits and length-delimited key bits, with increasing descent positions bounded by
 // 72 + 9 * maximum key length.
@@ -366,6 +369,9 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
     // Apply the same program-order repair as atomic_collapse: a read can reach this chain before
     // post-batch cleanup. Rank a connection's records in dispatch order, even when commit tickets
     // disagree; otherwise an older cross-shard group can hide a later transaction's write.
+    // Load-bearing: removal can look free when cleanup wins the race (as at 16 target cores).
+    // tests/multires.py at the gate's eight-core geometry detects it; the cost is deliberate
+    // (historical measurements in docs/decisions/readability-a9.md, resolver ordering).
     uint64_t prev_conn_id = 0;
     uint64_t prev_epoch = 0;
     auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {

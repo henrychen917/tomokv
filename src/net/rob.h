@@ -1,10 +1,12 @@
-// Per-connection reorder buffer and read-local ordering metadata, included by conn.h and
-// executor code. Requests can execute on different owners, but retirement follows issue order.
+// Per-connection reorder buffer and read-local ordering metadata, included directly by conn.h
+// and core/thread.h (ThreadCtx embeds ReadLocalArmStats). Requests can execute on different
+// owners, but retirement follows issue order.
 // dispatch_id names the next issue, flush_id the next retirement, slot(id) is id & mask, and
 // in_flight is dispatch_id - flush_id. The connection IO owner advances both frontiers.
 //
 // Equal frontiers mean no published Op remains in flight. Client teardown/migration and buffer
-// reuse also require their separate transport, notification and WATCH fences (see conn.h).
+// reuse also require their separate transport, notification, executor-epoch and WATCH fences
+// (see conn.h); Done can precede an executor's notification claim.
 // Workers access materialized Op chunks through dispatched tasks. dispatch_'s release store and
 // drain's acquire order publication to retirement; Op::state release Done/acquire supplies the
 // reply-data fence. Chunk pointers themselves are plain pointers, requiring the task hand-off's
@@ -523,8 +525,9 @@ public:
         // consulted and its answer is the same armed or not.
         if (!key_count || key_count > ReadLocalRobState::kMaxPreciseKeysetKeys || !filter)
             return false;
-        // Same reasoning as refine_current_write_hash: unarmed stages nothing and answers the way
-        // an unfilled ring answers, so precise-write eligibility does not depend on arming.
+        // Unarmed stages nothing and answers as an armed connection without a conservative
+        // generation does. An armed connection inside an overflow generation returns false
+        // (no precise-write mark) until that generation retires.
         if (__builtin_expect(read_local_arm_state_ == kReadLocalUnarmed, true)) return true;
         ReadLocalRobState& state = read_local_state_required();
         if (state.pending_write != ReadLocalRobState::PendingWrite::Overflow ||

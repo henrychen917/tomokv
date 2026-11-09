@@ -57,9 +57,10 @@ public:
         std::memcpy(address.sun_path, path_, path_length + 1);
 
         // Probe an existing socket before replacing its pathname: a successful connection or
-        // any error other than ECONNREFUSED rejects the bind. Redis 7.4 unlinks even accepting
-        // sockets; this probe protects an observed accepting endpoint, but probe and unlink
-        // still have a concurrent-boot TOCTOU window, as does the disposable TCP boot probe.
+        // any error other than ECONNREFUSED rejects the bind. This is deliberately stricter than
+        // Redis 7.4, which unlinks even accepting sockets, under the single-instance release rule.
+        // It protects an observed accepting endpoint, but probe/unlink still race a concurrent
+        // boot (TOCTOU), as does the disposable TCP boot probe.
         struct stat existing {};
         if (::stat(path_, &existing) == 0 && S_ISSOCK(existing.st_mode)) {
             const int probe = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);

@@ -1,6 +1,7 @@
 // LB drain refusal reasons, per-IO pass budgets and diagnostic counters. Included by
 // weighted_lb.h as the optional LB policy's stall state. ClientDrain may be refused after
 // bounded readiness/ACK attempts; shard IO/EX drains have separate completion obligations.
+// Nothing here runs on a stable placement's request path.
 
 #pragma once
 #include <array>

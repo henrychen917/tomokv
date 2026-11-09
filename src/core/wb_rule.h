@@ -58,8 +58,11 @@ struct IdleWindow {
     }
     void park() { waited = true; }
 };
-// Dimensionless fraction of the in-flight ROB that must have a contiguous Done prefix after the
-// small-pipeline completion allowance is exhausted.
+// Dimensionless fraction of the in-flight ROB required as a contiguous Done prefix when the
+// complete-prefix rule does not apply: immediately above small_pipe, or after complete_visits
+// counted deferrals for small pipelines. complete_visits == 0 keeps the complete-prefix rule
+// for small pipelines without counting. Reaching kWbufInline staged/reply bytes also permits
+// service. Settings default to kSmallPipe and kCompleteVisits.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
 
 // Cold artifact selector: only the default 0/1 policy, no detector/probe bits.

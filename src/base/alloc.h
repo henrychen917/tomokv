@@ -1,5 +1,6 @@
 // alloc.h — allocation, sized deallocation and per-thread jemalloc arena binding.
-// Included by store and buffer users; no translation-unit-specific include point is required.
+// Included by store/object headers, read-local reclamation, worker startup and INFO code;
+// no translation-unit-specific include point is required.
 // Callers own returned blocks and provide the matching request size when freeing them.
 //
 // Exposing allocator size classes lets callers reuse capacity without storing it in each object.
@@ -19,9 +20,11 @@
 // good_size() is a pure deterministic function of the request, the capacity does not have to be
 // STORED on the object; it is recomputed. That keeps KvObj's header at 8 bytes.
 //
-// Worker startup binds a thread-local arena. Allocation ownership is not enforced here: shard
-// migration, deferred reclamation and shutdown can free memory on a different thread from the
-// allocator. jemalloc supports these cross-thread frees; callers still enforce object lifetimes.
+// Worker startup binds a thread-local arena. Allocation ownership is not enforced here: fused
+// dispatch prebuilds large SET values for a foreign owner (l4prebuild.cc), and migration and
+// post-join shutdown hand objects across threads. Those objects can be freed directly or through
+// deferred reclamation on another thread. jemalloc supports remote frees; callers still enforce
+// object lifetimes.
 #pragma once
 #include <cstddef>
 #include <cstdint>
@@ -84,6 +87,7 @@ inline void free_sized(void* p, size_t n) {
 // ---- per-thread arena --------------------------------------------------------------------------
 // Worker startup calls after pinning to bind the calling thread's arena. Returns false on either
 // mallctl failure, or without jemalloc; it does not roll back an arena already created.
+// Production callers ignore the result; failure only loses arena isolation.
 inline bool bind_thread_arena() {
 #if defined(TOMO_JEMALLOC)
     unsigned arena = 0;

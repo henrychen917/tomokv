@@ -2,7 +2,7 @@
 // Loop signals use operations, nanoseconds and queue entries; shards also expose foreign
 // operations. INFO/DEBUG capture cumulative counters without retaining a shared reader window,
 // so each reader derives its own rates. Placement and role controllers also read the underlying
-// signals.
+// signals. Capture runs only on cold INFO/DEBUG paths or a controller beat.
 //
 // Writers use ordinary owner-local stores for many scheduling counters; capture's relaxed
 // __atomic_load_n on those fields does not establish a race-free C++ publication. The snapshot

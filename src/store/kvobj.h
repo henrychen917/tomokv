@@ -5,9 +5,10 @@
 // Layout, contiguous, in this order:
 //   [ hdr 8B ][ klen_ext u32? ][ expire_at i64? ][ key bytes ][ value: bytes | ptr | i64 | compact ]
 //
-// A shard owns each resident object without a refcount or shared-integer cache. Read-local readers
-// can borrow eligible strings under QSBR, and sends can borrow value bytes; replacement and
-// reclamation must respect those lifetimes. Header/key embedding avoids separate small-value
+// A shard owns each resident object without a refcount or shared-integer cache. Values move or
+// are copied between keys, never shared; a cross-thread refcount would add a shared-line write.
+// Read-local readers can borrow eligible strings under QSBR, and sends can borrow value bytes;
+// replacement and reclamation must respect those lifetimes. Header/key embedding avoids separate small-value
 // allocations. FlatStore's slot stores the 15-bit hash tag; KvObj stores no hash. Optional LRU/LFU
 // metadata shares the flags byte, with atomic access because foreign readers can touch it.
 #pragma once
@@ -295,11 +296,13 @@ static_assert(sizeof(KvObj) == 8, "KvObj header must stay 8 bytes");
 
 inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc);
 
-// Metadata inside an Enc::Compact KvObj tail, immediately followed by packed entry bytes.
+// Metadata inside an Enc::Compact KvObj tail, followed by entries in Compact's exact
+// [ULEB128 length][payload] format. Bytes are memcpy'd to/from Compact::data(), and CompactView
+// carries its own copy of the codec; keep both formats identical.
 // The enclosing object owns both; this overlay has no destructor, vector or external owner.
 // Callers serialize mutations and provide sufficient tail capacity; memcpy accessors tolerate
 // the key-dependent unaligned position. No bounds checks or publication operations are supplied.
-// Hash/list/set/zset share this one-allocation form. aux0/aux1 carry hash logical bytes/PRNG,
+// Hash/list/set/zset/stream share this one-allocation form. aux0/aux1 carry hash logical bytes/PRNG,
 // set small-encoding metadata, or stream last-id components; list and zset leave them zero.
 struct EmbeddedCompact {
     // val_ptr() follows a variable-length key and is not naturally aligned. Keep the metadata as
@@ -358,8 +361,9 @@ inline uint32_t embedded_compact_capacity(const KvObj* o) {
 
 // A non-owning facade over either the current external Compact or embedded bytes. Entry.offset
 // remains absolute for external gap buffers and zero-based for embedded buffers; logical() is the
-// bridge between these coordinate systems, as in Compact. Embedded small-N access rescans linearly
-// without a side index. Use on a caller-serialized collection, or privately during construction;
+// only sanctioned conversion, as in Compact; never derive a logical offset from Entry.offset
+// directly. Embedded small-N access rescans linearly without a side index. Use on a
+// caller-serialized collection, or privately during construction;
 // neither the view nor its iterators retain storage or publish it. Mutations invalidate borrowed
 // entries. A default view must be bound before use; invalid boundaries/capacity return false.
 // External operations delegate allocation/failure handling to Compact; embedded mutations do not
@@ -770,8 +774,9 @@ inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has
 // Initialize the complete positional header before any TTL/key/value pointer is decoded.
 // KeyExt is determined by identity, not length: a short namespaced key also needs
 // klen_ext, with namespace-1 in klen8 (255 denotes namespace zero for long keys).
-// A private replacement may reuse the known-valid DB-0 header bytes. This keeps
-// that variant's header layout while sharing the extended-length write.
+// In the single-database image a private replacement reuses the source's flags/klen8 (with TTL
+// adjusted, the same bytes recomputation would give) to preserve that image's existing code
+// generation; the extended-length write is shared.
 __attribute__((always_inline)) inline void kvobj_init_header(KvObj* object, Slice key, uint8_t type,
                                                              uint8_t enc, uint32_t length,
                                                              bool has_ttl_slot,
@@ -877,6 +882,9 @@ inline KvObj* /* TOMO_TOOL_BIND kvobj_init_int */ kvobj_init_int(void* mem, Slic
     return o;
 }
 
+// Allocate a class-rounded object; values above kEmbedThreshold or force_raw use a separate
+// value block (an empty value needs no extra allocation). Allocation failure returns nullptr
+// without throwing, freeing any partial allocation; callers can report OOM without unwinding.
 inline KvObj* /* TOMO_TOOL_BIND kvobj_new_string */ kvobj_new_string(Slice key, Slice val,
                                                                      int64_t expire_at_ms = -1,
                                                                      bool reserve_ttl_slot = false,
@@ -1024,9 +1032,11 @@ inline KvObj* kvobj_new_stream(Slice key, StreamVal* value, int64_t expire_at_ms
                              reserve_ttl_slot);
 }
 
-// Adopt helpers select the one-allocation compact form. On success ownership is consumed and the
-// caller's pointer is nulled; on failure it remains with the caller. Otherwise the external
-// wrapper is attached with ownership, and an embedded copy destroys the consumed wrapper.
+// These five adopt helpers are the only wrapper-to-embedded attach points. A Compact-encoded
+// wrapper whose encoded bytes fit kCollectionEmbedMax is copied into one allocation and deleted.
+// Deleting it drops wrapper-only state such as HashVal::ttls; callers with field TTLs use
+// kvobj_new_hash. Otherwise the wrapper attaches with OwnsExtern. Success consumes ownership and
+// nulls the caller's pointer; failure leaves it with the caller.
 inline KvObj* kvobj_adopt_hash(Slice key, HashVal*& value, int64_t expire_at_ms = -1,
                                bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&

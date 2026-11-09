@@ -1,4 +1,6 @@
 // Connection-buffer reclamation policy used by IoLoop::client_buffer_cron.
+// Reclamation runs only on that cold cron, never on a request/retire path; forget also runs at
+// close and migration.
 // Read-buffer relocation requires ROB quiescence and no kernel receive pointer; output
 // reclamation also excludes in-flight sends and the caller's OpenSSL plaintext reservation.
 #pragma once

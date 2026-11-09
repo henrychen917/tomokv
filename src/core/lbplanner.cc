@@ -77,9 +77,9 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
     return streak >= ticks;
 }
 
-// The damped key objective lives in this cold planner translation unit. Client incremental
-// search and the behaviour twin use weighted_lb_best_incremental_move; FLIP uses
-// weighted_lb_partition from the same shared policy header.
+// The damped key objective lives in this cold planner translation unit. Client search,
+// undamped key search (key-lb-damping 0) and the behaviour twin use
+// weighted_lb_best_incremental_move; FLIP uses weighted_lb_partition from the same policy header.
 // Contract: The monitor's key planner supplies stable items/targets and owns choice. Temporary
 // load arrays score moves by out-of-band residual, transferred load and deterministic
 // tie-breakers. Pins prohibit selection; absent owners or no improving move return false.

@@ -123,7 +123,8 @@ public:
     // Logical offset of an entry (0 = first byte). Entry.offset is ABSOLUTE (buffer-internal);
     // public offset-taking APIs use LOGICAL coordinates. The private three-argument decode takes
     // an absolute offset plus index; its two-argument overload accepts a logical offset. Zset's
-    // ordered inserts use logical() to cross between the two coordinate spaces.
+    // ordered inserts use logical(), the only sanctioned conversion between the spaces; never
+    // derive a logical offset from Entry.offset directly.
     uint32_t logical(const Entry& entry) const { return entry.offset - begin_; }
     size_t capacity_bytes() const {
         return (data_.capacity() ? good_size(data_.capacity()) : 0) +
@@ -195,10 +196,12 @@ public:
     // Insert at a LOGICAL entry boundary. Set's integer compact uses this to retain numeric order;
     // the offset is derived arithmetically from its fixed-width entries. As with every Compact
     // mutation, prior Entries are invalidated.
-    // Maintain both the two-ended byte buffer and its optional circular index. The index can be
-    // absent at the start of an insert and allocated by ensure_offset_space, so a mid-insert must
-    // recompute its splice after ensure_space and update every shifted offset. Index fix-up is
-    // O(entries), bounded by the caller's compact limits; byte movement is O(bytes).
+    // Maintain both the two-ended byte buffer and its optional circular index. offset_slot takes
+    // modulo offsets_.size(), so guard every offset_at/offset_set with !offsets_.empty() to avoid
+    // division by zero; ensure_offset_space may create the index during this insert. ensure_space
+    // may move begin_, so recompute the splice from at_index after both calls and update every
+    // shifted offset. Index fix-up is O(entries), bounded by the caller's compact limits; byte
+    // movement is O(bytes).
     bool insert(uint32_t logical, Slice value) {
         if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
         if (logical == end_ - begin_) return append(value);
@@ -560,7 +563,9 @@ enum class CollectionEncoding : uint8_t {
 // to own copies before clearing compact bytes, and publishes no cross-thread state. The command
 // handlers maintain expanded counts alongside mutations so encoding choices need no scan.
 // Guarded compact mutations return false when expanded or when Compact refuses the operation;
-// this class has no demotion operation or waiting policy.
+// this class has no demotion operation or waiting policy. A handler may demote only by resetting
+// the base: list demote_shrunk_list assigns CompactValue{} then replace_compact, so every counter
+// must be valid in its default state.
 class CompactValue {
 public:
     CollectionEncoding encoding() const { return encoding_; }

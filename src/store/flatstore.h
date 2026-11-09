@@ -1,7 +1,9 @@
 // FlatStore owns each shard's open-addressed keyspace, expiry indexes, snapshot cursor,
 // borrow registry and owner-local MVCC state. It is included through shard.h and directly
 // by store/command helpers and fixtures; definitions stay in each including translation unit.
-// flatstore_atomic.inc, flatstore_flush.inc and flatstore_random.inc supply class members.
+// flatstore_atomic.inc, flatstore_flush.inc and flatstore_random.inc supply members inside the
+// class; flatstore_impl.h, included just after it, defines the private storage, snapshot and
+// read-local helpers declared from expire_found to rehash_step.
 //
 // The shard owner serializes mutations. Unarmed accesses use ordinary slot loads/stores;
 // armed foreign probes acquire-load slots and topology, while writers release-publish
@@ -15,14 +17,18 @@
 // Armed resize admission reserves its retirement record before publishing the new table;
 // the final step hands off the old table without waiting for object-ring capacity. QSBR
 // may delay freeing it. Snapshot capture temporarily retains the old table's slot layout.
+// Shard migration moves no slots or objects: the router reassigns ownership, and an armed
+// store's retire sink is rebound at a quiesced handoff (rebind_read_local_retire_sink).
 //
 //   tab_[0]  current table; new keys are inserted here.
 //   tab_[1]  old table during rehash, or frozen slot layout during snapshot capture.
 //
-// Replacement must remove an old-table copy before publishing the new current-table copy,
-// and erase searches both tables, or deleting the replacement can resurrect the old value.
-// Rehash briefly publishes the destination before tombstoning the source; armed probes
-// validate that multi-slot move through ReadLocalTableGuard.
+// Between owner operations each resident key has exactly one live slot across both tables.
+// find returns the first match, erase stops at the first table holding the key, size sums both
+// live counts and SCAN visits both tables. Replacement must remove an old-table copy before
+// publishing the new current-table copy, or deleting the replacement can resurrect the old
+// value. Rehash briefly publishes two words naming the same object before tombstoning the
+// source; armed probes validate that multi-slot move through ReadLocalTableGuard.
 //
 // Slot encoding: [63:49] hash tag, [48] tombstone/pre-image mark, [47:0] KvObj pointer.
 // Boot probes the allocator's address width; make_word asserts that each packed pointer
@@ -73,9 +79,10 @@ struct StoreSizeState {
     std::atomic<bool> field_ttl_attention{false};
 };
 
-// Allocation-failure injection, compiled when NDEBUG is absent. Each table allocation
-// checks a relaxed atomic counter; probes without allocation do not consult it. This
-// includes allocations initiated by commands as well as startup and maintenance.
+// Allocation-failure injection, compiled when NDEBUG is absent, as in the Makefile's default
+// builds, release included. Defining NDEBUG also disables TOMO_ASSERT. Each table allocation
+// checks a relaxed atomic counter; probes without allocation do not consult it. This includes
+// allocations initiated by commands as well as startup and maintenance.
 #ifndef NDEBUG
 inline std::atomic<uint32_t> g_flatstore_table_alloc_failures{0};
 
@@ -109,12 +116,14 @@ inline uint64_t mix64(uint64_t h);
 
 // Owner-local expiry attention index: owns two hash arrays and byte-state sidecars, not
 // keys or object pointers. Replacement therefore does not invalidate a stored hash.
+// Separate state bytes keep every 64-bit hash value representable; no hash is a sentinel.
 // Callers serialize access; this class supplies no cross-thread publication or locking.
 // Allocation failure returns false from insert; a hash identifies possible expiry work,
 // so callers still check the resident object's deadline and handle stale registrations.
 //
 // Growth normally migrates kMigrateSlotsPerOp slots per insert/sample into table 1;
-// finish_migration can drain the remainder when insert's occupancy backstop is reached.
+// finish_migration can drain the remainder at insert's occupancy backstop, which the current
+// step size and growth trigger keep out of reach (see insert).
 // Sampling counts empty slots against its budget and preserves a cursor between calls.
 // A zero population releases larger/migrating tables; a minimum-size table keeps its
 // buffer and clears 16 state bytes, avoiding allocation for small recurring populations.
@@ -146,12 +155,15 @@ public:
         migrate_ = 0;
     }
 
-    // The deadline argument carries no index state; insert_raw ignores it.
+    // The deadline argument carries no index state; insert_raw ignores it. Keep this call shape
+    // to preserve GCC's inlining decisions for insert.
     bool insert(uint64_t hash, int64_t deadline = kNoTtlDeadline) {
         if (rehashing()) {
             migrate(kMigrateSlotsPerOp);
-            // Occupancy backstop: finish the move before an insertion exhausts the destination.
-            // The ordinary path advances kMigrateSlotsPerOp slots before testing this bound.
+            // Backstop only: an 8-slot step per insert and the 70% trigger finish migration with
+            // at most about 41% destination occupancy after doubling, under 63% after a same-size
+            // rebuild. Reaching this drain would require changing those constants; keep it to
+            // finish the move before an insertion exhausts the destination.
             if (rehashing() && (static_cast<uint64_t>(live_[1]) + tombs_[1] + 1) * 100 >=
                                    static_cast<uint64_t>(cap_[1]) * 70)
                 finish_migration();
@@ -425,7 +437,8 @@ static_assert(sizeof(ExpireIndex) == 80, "ExpireIndex layout drift");
 // pointer, which would tax every hash with an indirect call.
 enum class HashKind : uint8_t { Mix64Seeded = 0, SipHash12 = 1 };
 inline HashKind g_hash_kind = HashKind::Mix64Seeded;
-inline uint64_t g_hash_seed = 0;  // selected during startup, including persistence metadata
+// Chosen in main before workers start (fresh random or persistence metadata); read-only after.
+inline uint64_t g_hash_seed = 0;
 inline uint64_t g_sip_k0 = 0, g_sip_k1 = 0;
 
 inline uint64_t rotl64(uint64_t x, int b) { return (x << b) | (x >> (64 - b)); }
@@ -487,7 +500,7 @@ inline uint64_t mix64(uint64_t h) {
 // that is a raw slot number cannot keep that promise -- doubling the table moves a key from a slot
 // AHEAD of the cursor to one BEHIND it, and the key is silently never emitted.
 //
-// Reverse-binary traversal needs one property of the table homes:
+// Reverse-binary traversal (Redis's dictScan algorithm) needs one property of the table homes:
 // the home index is `hash & (2^k - 1)`, so a key's home in the small table is its home in the big
 // table with the extra high bits masked off. Count the cursor in BIT-REVERSED order and the high
 // bits therefore move FASTEST, which makes every family of homes that share the small table's low
@@ -3140,7 +3153,8 @@ static_assert(FlatStoreLayoutLock::atomic_separator_first ==
 // The gap is padding on purpose; if a future field shrinks it below the line, say so here.
 static_assert(FlatStoreLayoutLock::gap_bytes == 28);
 
-// Read-local sidecars preserve the unarmed FlatStore footprint checked by atomic_torn.
+// Read-local state lives in sidecars, so the unarmed FlatStore stays 944 bytes. The containing
+// Shard stride is part of atomic_torn's gate geometry (shard.h); this pins the store's share.
 static_assert(sizeof(FlatStore) == 944);
 
 // Owner-scoped accounting bracket, borrowing a store and object. Samples kvobj_size on
@@ -3148,6 +3162,8 @@ static_assert(sizeof(FlatStore) == 944);
 // allocation occurs here. Finish before deleting a mutated object, then cancel if needed:
 // erase subtracts its current size, and reporting a delta after deletion would dereference
 // freed storage. Missing growth accounting can underflow obj_bytes_ at later removal.
+// Every handler mutating a found object in place must hold this bracket or report the delta
+// through note_object_size_change: erase subtracts the object's current size.
 class ObjectSizeTracker {
 public:
     ObjectSizeTracker(FlatStore& store, KvObj* object)

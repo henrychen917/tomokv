@@ -26,6 +26,10 @@ inline constexpr uint32_t kReadLocalRetireRingCapacity = 4096;
 // is supplied here: the queue seals with Server::advance_read_local_epoch's seq_cst RMW and waits
 // for reader grace. Its full object ring can wait on the writer; available enables preflight.
 // defer must be bound; this wrapper neither validates arguments nor reports failure.
+// Exception to the retiring caller's role: at a quiesced LB/FLIP ownership edge the coordinator
+// can retire a disabled idle clock into the destination queue (adopt_shard_owner_state rebinds
+// the sink before configure_maxmemory -> configure_object_idle(false)). This push relies on
+// executor quiescence; TOMO_RL_CACHE_DEBUG's owner check rejects that cross-thread push.
 struct ReadLocalRetireSink {
     using ReclaimFn = void (*)(void* owner, void* payload, size_t auxiliary);
     using DeferFn = void (*)(void* context, void* owner, void* payload, size_t auxiliary,

@@ -249,6 +249,9 @@ private:
 // read-first guard and seq_cst fetch_or for a new bit; a true result assigns the caller the
 // park wake. take uses acquire exchange. The mask does not replace the ROB's completion
 // publication or the caller's lifetime fences.
+// Callers order Done publication before set with a seq_cst fence (see ex_loop.h's notify path).
+// The read-first path performs no fence: without the caller's fence, a stale set bit can hide
+// a completion that the IO has already missed while consuming the earlier notification.
 class ReadyMask {
 public:
     static constexpr uint32_t kSlots = 1024;
