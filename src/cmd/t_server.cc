@@ -845,7 +845,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, c
 }
 
 bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates,
-                            std::string* deferred_error = nullptr) {
+                            std::string* deferred_error = nullptr, bool environment = true) {
     const auto reject = [&](const char* message) {
         if (deferred_error)
             *deferred_error = message;
@@ -886,7 +886,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             error = "can't set immutable config";
         else if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename"))
             error = "can't set protected config";
-        if (!error && !std::strcmp(item->name, "appendonly") && g_server && g_server->loading()) {
+        if (!error && environment && !std::strcmp(item->name, "appendonly") && g_server &&
+            g_server->loading()) {
             return reject("LOADING Redis is loading the dataset in memory");
         }
         if (!error) {
@@ -963,7 +964,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             msg.push_back('\'');
             return reject(msg.c_str());
         }
-        if (g_server && !std::strcmp(item->name, "maxclients")) {
+        if (environment && g_server && !std::strcmp(item->name, "maxclients")) {
             uint64_t requested = 0;
             parse_u64(Slice(value.data(), value.size()), requested);
             std::string error;
@@ -1966,7 +1967,8 @@ bool config_collect_owner(Op& op, ConfigUpdates& updates) {
             break;
         }
     std::string error;
-    if (collect_config_updates(op, updates, &error)) return true;
+    // A reserved verdict means an earlier fragment already applied this SET.
+    if (collect_config_updates(op, updates, &error, !verdict)) return true;
     if (!op.has_scatter_state())
         reply_err(op.sink(), error.c_str());
     else if (verdict)
