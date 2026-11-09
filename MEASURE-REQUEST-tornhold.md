@@ -291,3 +291,19 @@ number is the matched-load rate; instruction savings alone do not establish the
 expected approximately 1% default-config overhead. Check p1 and writes for
 regressions, and use HOLD versus the same-layout PAD to distinguish mechanism
 cost from text/data layout effects. No throughput result is claimed by this lane.
+
+### Broad 132-row selection complete
+
+`build/gate-run.8JwTsx/ledger.partial`: **132/132 PASS** on the final native image.
+Its label multiset exactly equals tornread's original 132-row receipt. This covers
+ASAN, atomics/MVCC, FLUSH, blocking, BGSAVE/EXEC, read-local ordering, transaction
+ordering, WB rules and the complete FLIP/MULTI/WATCH storm. Every declared mode
+inside each job ran. `GATE_PROOF_NO_RATES=1` retains the correctness assertions
+and leaves rate-only checks to the maintainer.
+
+The initial one-slot invocation `build/gate-run.1caOJm` was stopped after its
+companion build completed, once both CCX slots became available. Its partial
+ledger is excluded from pass totals; the full selection then ran in two disjoint
+8-core, 6:2 slots. `build/tornhold/reschedule.json` records that scheduling change.
+The remaining selected regression jobs, including all 35 feature-interaction
+cells, are now running separately.

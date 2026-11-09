@@ -1022,6 +1022,728 @@
           "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
         }
       ]
+    },
+    "native_132": {
+      "name": "proof-132-native",
+      "jobs": [
+        "aclkeys_wake",
+        "asan",
+        "asan_batteries",
+        "atomic_batteries",
+        "atomic_floor",
+        "blockfix2",
+        "debug-0",
+        "debug-1",
+        "flipfix6",
+        "flipfix6_units",
+        "flushfix2",
+        "flushfix2_units",
+        "flushfix3",
+        "flushfix3_units",
+        "list_namespace",
+        "notify",
+        "release",
+        "release_batteries",
+        "reorder_engagement",
+        "reorder_sync",
+        "rlfix3_info",
+        "rlfix5-monotonic",
+        "rlfix5-no-yes",
+        "rlfix5-yes-no",
+        "snapfix_bgsave_exec",
+        "splitlocal_units",
+        "txnorder2",
+        "txnorder_wake",
+        "wb_rule_units",
+        "wbland_units"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589"
+      ],
+      "returncode": 0,
+      "negative": false,
+      "reorder": 0,
+      "log": "build/tornhold/proof-132-native.log",
+      "artifact": "build/gate-run.8JwTsx",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.13,
+          "label": "ASAN build"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.28,
+          "label": "ACLKEYS3 last-owner-task wake"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.52,
+          "label": "AT4.5 list publisher physical namespaces"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 47.47,
+          "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 46.3,
+          "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 27.32,
+          "label": "flushfix3-unit linear collapse, collisions, OOM and saturated ranges"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.4,
+          "label": "flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 flush-pair FLUSHALL SYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 flush-pair FLUSHALL SYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 flush-script FLUSHALL SYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 flush-script FLUSHALL SYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.48,
+          "label": "flushfix2 flush-only FLUSHALL SYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.49,
+          "label": "flushfix2 flush-only FLUSHALL SYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 namespace FLUSHALL SYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 namespace FLUSHALL SYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.49,
+          "label": "flushfix2 namespace FLUSHALL ASYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.49,
+          "label": "flushfix2 namespace FLUSHALL ASYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 namespace FLUSHDB SYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.49,
+          "label": "flushfix2 namespace FLUSHDB SYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.5,
+          "label": "flushfix2 namespace FLUSHDB ASYNC (databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 62.49,
+          "label": "flushfix2 namespace FLUSHDB ASYNC (databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "flushfix2-unit ranges and rollback"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "flushfix2-db0-unit ranges and rollback"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 34.37,
+          "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 36.9,
+          "label": "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 34.26,
+          "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.81,
+          "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.99,
+          "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.87,
+          "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 55.52,
+          "label": "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 9.6,
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.19,
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.51,
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.22,
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 14.49,
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.9,
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.58,
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.11,
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.81,
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 30.61,
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.4,
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.3,
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.26,
+          "label": "txn_nx battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 8.73,
+          "label": "txniso battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.18,
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.19,
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.51,
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.22,
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 14.49,
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.89,
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.57,
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.14,
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.8,
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 30.61,
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.39,
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.29,
+          "label": "xscript battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.35,
+          "label": "txn_nx battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 8.7,
+          "label": "txniso battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 27.66,
+          "label": "R7 generated envelope parity"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 18.11,
+          "label": "R7 production engagement (both database runtimes)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.76,
+          "label": "FLIP session handover S2 and close fences (ASAN+TSAN)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "FLIP WATCH alias allocation rollback (db1/db16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "writeback c12 policy witnesses + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.92,
+          "label": "writeback c12 phase witnesses + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.89,
+          "label": "writeback c12 stages witnesses + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.75,
+          "label": "writeback c12 split-phase witnesses + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 34.91,
+          "label": "writeback policy clauses witnesses + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.24,
+          "label": "writeback policy paths witnesses + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 10.7,
+          "label": "splitlocal template forwarding + old-argument controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.65,
+          "label": "torture battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.22,
+          "label": "RYOW battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.63,
+          "label": "ACL category runtime table"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.58,
+          "label": "ACL LOAD/SAVE no-file errors"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.03,
+          "label": "idle loop ceiling (LBSIGNALS, 1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "shutdown invariants (nothing stuck)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "direct-reply fired (direct=N)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "dispatched==executed (N)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.81,
+          "label": "atomic torn/window battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.08,
+          "label": "atomic RYOW/mixed-write battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.24,
+          "label": "atomic owner-local hazard battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "atomic shutdown invariants"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.77,
+          "label": "INFO selective collection (1s, epoll, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (1s, epoll, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (1s, uring, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (1s, uring, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (2s, epoll, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (2s, epoll, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (2s, uring, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "INFO selective collection (2s, uring, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.08,
+          "label": "MULTI feature battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.55,
+          "label": "blocking feature battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.9,
+          "label": "pubsub feature battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "Lua feature battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 46.27,
+          "label": "keyspace notification battery (atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "feature battery shutdown invariants"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 512.07,
+          "label": "FLIP MULTI WATCH session storm (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "tripwire arm/disarm round-trip"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "pipelined same-conn program order (400 rolls)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder2 writer episode R1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder2 writer episode R2"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder2 writer episode R3"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder2 writer episode R4"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder2 writer episode R5"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder2 writer episode R6"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder2 writer episode R7"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.09,
+          "label": "txnorder2 writer episode R8"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder2 writer episode R9"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder2 writer episode R10"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder2 writer episode R11"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.57,
+          "label": "txnorder2 writer episode R12"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "txnorder2 direct RENAME owner join"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 22.67,
+          "label": "txnorder2 WATCH serve"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 30.33,
+          "label": "txnorder2 WATCH flush"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 27.99,
+          "label": "txnorder2 WATCH readonly"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "txnorder2 busy owner inbox wake"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.94,
+          "label": "torture under ASAN"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.07,
+          "label": "RYOW under ASAN"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.36,
+          "label": "atomic torn/window under ASAN"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.09,
+          "label": "atomic RYOW under ASAN"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "ASAN clean"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.92,
+          "label": "rlfix5 monotonic (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.96,
+          "label": "rlfix5 monotonic (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.04,
+          "label": "rlfix5 yes-no (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.03,
+          "label": "rlfix5 yes-no (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.05,
+          "label": "rlfix5 no-yes (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.05,
+          "label": "rlfix5 no-yes (2s)"
+        }
+      ],
+      "ok": 132,
+      "fail": 0,
+      "original_132_labels_match": true,
+      "environment": {
+        "LC_ALL": "C",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TORNREAD_REORDER": "0"
+      }
     }
   },
   "harness": {
@@ -1044,5 +1766,13 @@
       "log": "build/tornhold/label-fixture-projected-final.log",
       "scope": "Temporary inventory projection only; real EXPECT and fixture untouched"
     }
-  }
+  },
+  "excluded_runs": [
+    {
+      "reason": "Matrix finished; use both authorized CCX correctness slots after companion build",
+      "excluded_artifact": "build/gate-run.1caOJm",
+      "old_parent": 4128473,
+      "old_gate": 532674
+    }
+  ]
 }
