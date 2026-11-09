@@ -73,7 +73,7 @@ unit will cover the actual parser/drain boundary.
 ### Hold implementation checkpoint
 
 PART2 sampling and stamping stay enabled throughout. `PlainReadHolds` replaces
-`PlainReadCuts` with 512 fixed generations (8 KiB per IO); `PlainReadHold` occupies
+`PlainReadCuts` with 512 fixed 16-byte generations (8 KiB plus 16 bytes of ring cursors per IO); `PlainReadHold` occupies
 Rob offset 120. Op's reply eligibility byte returns to its PRE representation.
 The parser acquires before the scatter/local/owner split, carries confirmed
 scatter cuts only on the scatter path, and commits the covered end in Phase 8.
@@ -135,7 +135,8 @@ and sequential-control rows (four mode/read-local shapes × two engines × two
 atomic settings × two read shapes), one normal/db0 unit row, four continuous
 pipeline rows, four parked-WAIT rows and two FLIP rows: **+43 quick / +43 full**
 beyond tornread, or **+75 / +75** against the merged maintainer fixture.
-All collection lines occur before the quick-tier exit. Source inventory is
+Collection sites are `tests/gate.sh:7378,7383,7385,7386,7388`, before the
+quick-tier exit at line 7629; inherited tornread collects at line 7377. Source inventory is
 **1,340** full rows; landing counts should be **EXPECT_QUICK=1323** and
 **EXPECT_FULL=1340**. The maintainer owns those constants and the label fixture;
 this lane does not edit either.
