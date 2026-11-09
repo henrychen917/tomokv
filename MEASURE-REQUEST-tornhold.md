@@ -8,7 +8,10 @@ closing the GET-on-owner-A / MGET-on-other-owners tear in design section 2.6.
 Production source is frozen at `da3fcab014`; subsequent commits add tests and
 evidence. The final image is `build/tornhold/tomokv-hold`, SHA-256
 `18eb7a988891a41cae24a20ae2b33378d987a07a80d031b9038ef709985ec92b`.
-Requested correctness coverage is complete. Instruction accounting is running.
+Requested correctness coverage and all 420 primary instruction repeats are complete.
+Default atomic-0 GET p32 costs **+2.16% instructions versus PRE in 2s** and
+**+2.51% in 1s**, while saving **7.37% / 6.49% versus tornread PART2**.
+The design's approximately 1% instruction estimate is not met by this image.
 No throughput result is claimed. No push was made.
 
 ### Integration prerequisite
@@ -164,7 +167,8 @@ No production or gate source change was made for this allocation correction.
 (431.826 seconds). Logs: `build/tornhold/all-unit-final.log`,
 `gates-test-after-progress.log`. The final `make -j20 all` is a no-op; `make -q` and `make -q all` both return zero.
 Native and frozen images retain the candidate digest above. Evidence:
-`build/tornhold/final-build.log`, `final-freshness.json`.
+`build/tornhold/final-build-after-accounting.log`,
+`final-freshness-after-accounting.json`.
 
 ### Falsifiers
 
@@ -209,7 +213,8 @@ ports 26590/26591. Evidence: `docs/tornhold-endurance.json`,
 
 ### Instruction accounting
 
-The correctness queue is complete and accounting is running. The instrument is
+All **420/420 primary repeats** completed: 28 cells × five arms × three repeats.
+The instrument is
 `tools/tornread_instructions.py --place-io --arms pre part1 part2 merged-part2 hold
 --get-depths 1 8 32 128 --repeats 3 --port 26595`, under `LC_ALL=C`, pinned to CPUs
 0–11. The four requested arms are accompanied by merged PART2, the verified
@@ -226,11 +231,95 @@ Counts for MGET-8/MSET-8 are per public command, not per key.
 The historical seed digest
 `78bb25654d20f7e1b017c4d5b363e41b1c4887a7b133dfaea0fff844981bf829`
 was not found in the available worktrees or scratchpad. All arms use one new
-common seed; identity with historical key placement is not claimed. Extra GET
+common seed, SHA-256
+`55cf94266505e132ad6da898b1f8163222633b54f1e393d10611bd1e43ffb780`;
+identity with historical key placement is not claimed. Extra GET
 depths expose amortization without adding a production pass counter. Pipeline
 128 spans at least two 64-slot ROB windows and must not be reported as one pass.
 
-<!-- FINAL_INSTRUCTION_TABLES -->
+Raw primary results are in `build/tornread/instructions-20261109-110708/`;
+compact per-repeat totals, binary digests, geometry and all 28 cells are in
+`docs/tornhold-instructions.json`. The before/after process snapshots show no
+other active server or measurement workload. Every repeat has the required
+command count, IO placement and counter coverage.
+
+Instructions per public command: median [minimum–maximum], three repeats per arm.
+
+| Mode | Atomic | Command/depth | PRE | PART1 | PART2 | Merged PART2 | HOLD | HOLD/PRE | HOLD/merged PART2 |
+|---|---:|---|---:|---:|---:|---:|---:|---:|---:|
+| 2s | 0 | GET p1 | 39,485 [39,419–39,703] | 39,921 [39,280–39,990] | 39,232 [38,404–39,759] | 39,290 [39,085–39,301] | 39,541 [39,359–39,663] | +0.14% | +0.64% |
+| 2s | 0 | GET p32 | 2,362 [2,358–2,372] | 2,405 [2,405–2,408] | 2,605 [2,602–2,617] | 2,610 [2,594–2,611] | 2,413 [2,396–2,416] | +2.16% | -7.54% |
+| 2s | 0 | SET p32 | 2,491 [2,485–2,491] | 2,511 [2,502–2,514] | 2,509 [2,504–2,513] | 2,501 [2,495–2,509] | 2,518 [2,504–2,521] | +1.10% | +0.70% |
+| 2s | 0 | MGET-8 p8 | 17,547 [17,488–17,588] | 17,579 [17,556–17,587] | 17,630 [17,577–17,631] | 17,683 [17,666–17,711] | 17,633 [17,350–17,703] | +0.49% | -0.28% |
+| 2s | 0 | MSET-8 p8 | 19,136 [19,080–19,179] | 19,075 [19,055–19,102] | 19,094 [19,067–19,101] | 19,077 [19,032–19,085] | 19,159 [18,653–19,170] | +0.12% | +0.43% |
+| 2s | 1 | GET p1 | 39,525 [39,056–39,759] | 39,833 [39,699–39,949] | 39,456 [39,399–39,736] | 39,444 [38,737–39,514] | 39,160 [33,530–39,275] | -0.92% | -0.72% |
+| 2s | 1 | GET p32 | 2,370 [2,367–2,375] | 2,621 [2,621–2,627] | 2,611 [2,607–2,617] | 2,607 [2,606–2,609] | 2,415 [2,411–2,425] | +1.86% | -7.37% |
+| 2s | 1 | SET p32 | 2,480 [2,466–2,492] | 2,498 [2,489–2,507] | 2,495 [2,485–2,502] | 2,503 [2,495–2,505] | 2,504 [2,422–2,507] | +0.97% | +0.03% |
+| 2s | 1 | MGET-8 p8 | 17,689 [17,654–17,704] | 17,683 [17,646–17,694] | 17,700 [17,598–17,739] | 17,752 [17,727–17,774] | 17,786 [17,784–17,806] | +0.55% | +0.19% |
+| 2s | 1 | MSET-8 p8 | 82,807 [82,689–82,979] | 82,732 [82,241–83,284] | 83,207 [83,086–83,489] | 83,474 [83,445–84,529] | 82,758 [82,242–83,143] | -0.06% | -0.86% |
+| 1s | 0 | GET p1 | 17,437 [17,433–17,454] | 17,424 [17,410–17,438] | 17,454 [17,418–17,456] | 17,487 [17,436–17,500] | 17,487 [17,481–17,491] | +0.29% | +0.00% |
+| 1s | 0 | GET p32 | 2,330 [2,330–2,339] | 2,363 [2,357–2,364] | 2,554 [2,554–2,554] | 2,543 [2,538–2,544] | 2,388 [2,383–2,391] | +2.51% | -6.09% |
+| 1s | 0 | SET p32 | 2,520 [2,516–2,522] | 2,515 [2,506–2,517] | 2,509 [2,508–2,510] | 2,520 [2,515–2,532] | 2,523 [2,517–2,525] | +0.09% | +0.11% |
+| 1s | 0 | MGET-8 p8 | 18,069 [18,048–18,085] | 18,302 [18,294–18,311] | 18,350 [18,339–18,367] | 18,331 [18,309–18,331] | 18,358 [18,335–18,364] | +1.60% | +0.15% |
+| 1s | 0 | MSET-8 p8 | 20,050 [20,041–20,054] | 20,013 [19,997–20,023] | 20,033 [19,993–20,036] | 20,006 [20,003–20,009] | 20,008 [20,005–20,015] | -0.21% | +0.01% |
+| 1s | 1 | GET p1 | 17,449 [17,445–17,463] | 17,440 [17,438–17,446] | 17,466 [17,461–17,485] | 17,479 [17,465–17,494] | 17,489 [17,467–17,503] | +0.23% | +0.06% |
+| 1s | 1 | GET p32 | 2,351 [2,346–2,351] | 2,558 [2,550–2,559] | 2,555 [2,551–2,563] | 2,547 [2,542–2,554] | 2,392 [2,388–2,393] | +1.77% | -6.07% |
+| 1s | 1 | SET p32 | 2,523 [2,522–2,534] | 2,524 [2,515–2,526] | 2,523 [2,514–2,526] | 2,515 [2,513–2,537] | 2,528 [2,526–2,538] | +0.19% | +0.50% |
+| 1s | 1 | MGET-8 p8 | 18,198 [18,187–18,208] | 18,417 [18,411–18,417] | 18,428 [18,413–18,442] | 18,425 [18,403–18,428] | 18,472 [18,466–18,480] | +1.50% | +0.26% |
+| 1s | 1 | MSET-8 p8 | 63,823 [63,795–64,097] | 63,830 [63,688–63,878] | 64,069 [63,917–64,070] | 63,967 [63,872–64,019] | 63,444 [63,110–63,823] | -0.59% | -0.82% |
+
+GET depth sensitivity; these are per-command counts, not measured parser-pass costs.
+
+| Mode | Atomic | Depth | HOLD instructions/GET | HOLD − PRE instructions/GET | HOLD/PRE |
+|---|---:|---:|---:|---:|---:|
+| 2s | 0 | 1 | 39,541 [39,359–39,663] | +55.48 | +0.14% |
+| 2s | 0 | 8 | 5,757 [5,713–5,775] | +53.52 | +0.94% |
+| 2s | 0 | 32 | 2,413 [2,396–2,416] | +51.01 | +2.16% |
+| 2s | 0 | 128 | 1,799 [1,798–1,805] | +51.03 | +2.92% |
+| 2s | 1 | 1 | 39,160 [33,530–39,275] | -364.69 | -0.92% |
+| 2s | 1 | 8 | 5,760 [5,718–5,767] | +38.15 | +0.67% |
+| 2s | 1 | 32 | 2,415 [2,411–2,425] | +44.19 | +1.86% |
+| 2s | 1 | 128 | 1,810 [1,807–1,820] | +35.94 | +2.03% |
+| 1s | 0 | 1 | 17,487 [17,481–17,491] | +50.15 | +0.29% |
+| 1s | 0 | 8 | 4,694 [4,694–4,699] | +66.44 | +1.44% |
+| 1s | 0 | 32 | 2,388 [2,383–2,391] | +58.36 | +2.51% |
+| 1s | 0 | 128 | 1,919 [1,919–1,920] | +40.22 | +2.14% |
+| 1s | 1 | 1 | 17,489 [17,467–17,503] | +40.79 | +0.23% |
+| 1s | 1 | 8 | 4,697 [4,691–4,702] | +63.10 | +1.36% |
+| 1s | 1 | 32 | 2,392 [2,388–2,393] | +41.51 | +1.77% |
+| 1s | 1 | 128 | 1,920 [1,920–1,932] | +32.76 | +1.74% |
+
+The four GET p32 cells have at most **0.683%** deviation from their median within
+any arm. The measured excess is 51–58 instructions/GET at atomic 0 and 42–44 at
+atomic 1. These whole-process measurements exceed the static hold-cost estimate;
+without a parser-pass counter they do not isolate the hold routine's own cost.
+The table supplies depth sensitivity at p8/p32/p128, not a measured per-pass
+amortization claim.
+
+Four of 140 arm/cell groups exceed 2% deviation from their median: split PART2
+GET p1/atomic 0 (2.11%), HOLD MSET-8 p8/atomic 0 (2.64%), HOLD GET p1/atomic 1
+(14.38%), and HOLD SET p32/atomic 1 (3.26%). All raw samples remain in the table.
+**The negative p1 delta is not evidence of a gain.** These deviations are not
+classified as box noise.
+
+Investigation used 60 additional finite repeats, five per selected cell, with
+cycles, task-clock, context-switch and migration counters plus before/after
+thread-affinity and INFO observations. Reply totals, IO placement, server affinity
+and counter availability remain correct. The three initially variable candidate
+cells stay below 2% in this diagnostic run, while historical PART2 GET p1 still
+varies by 3.32%. Added counters perturb the workload; their instruction totals are
+kept separate from the primary table.
+
+Six separately controlled instruction-sampling profiles cover PRE/PART2/HOLD at
+split GET p1 and p32. They show substantial executor-loop and vDSO work at p1
+(roughly 26–28% in ExLoop::run and 20–22% in vDSO alone), demonstrating that the
+whole-process count includes much more than the read body. They do not establish
+the cause of the original 14.38% low repeat, which remains unresolved. No throughput
+or p1 improvement claim follows. Evidence and exact diagnostic scripts are in
+`docs/tornhold-instruction-diagnostics.json`. An initial unacknowledged sampling
+attempt missed the short p32 interval and failed with empty data; it is retained
+and excluded, then replaced by fresh captures with acknowledged record controls.
+
 
 ### Maintainer ABBA request
 
@@ -278,5 +367,5 @@ Native rlfix5 jobs regenerated historical build-metadata files; lane copies and
 hashes are retained under build/, and the tracked historical files are restored.
 
 Compact, committed evidence is in `docs/tornhold-integration.json`,
-`docs/tornhold-proof.json`, `docs/tornhold-endurance.json` and, after accounting,
-`docs/tornhold-instructions.json`. No committed file exceeds 1 MB.
+`docs/tornhold-proof.json`, `docs/tornhold-endurance.json`,
+`docs/tornhold-instructions.json` and `docs/tornhold-instruction-diagnostics.json`. No committed file exceeds 1 MB.

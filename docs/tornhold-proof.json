@@ -1,5 +1,5 @@
 {
-  "status": "Requested correctness complete; instruction accounting running",
+  "status": "Requested correctness and instruction accounting complete; maintainer fixture/count update and throughput ABBA remain. Approximately 1% instruction estimate not achieved; four primary accounting groups have over-2% variation, including one unresolved 14.38% low p1 repeat.",
   "production_source_commit": "da3fcab014",
   "candidate_sha256": "18eb7a988891a41cae24a20ae2b33378d987a07a80d031b9038ef709985ec92b",
   "row_delta": {
@@ -9356,6 +9356,17 @@
     },
     "build/tornhold/tomokv-hold": {
       "sha256": "18eb7a988891a41cae24a20ae2b33378d987a07a80d031b9038ef709985ec92b"
-    }
+    },
+    "listeners_on_lane_ports": [],
+    "fixture_and_expect_unchanged_since_dependency_merge": true,
+    "no_new_committed_blob_over_one_mb": true
+  },
+  "instruction_accounting": {
+    "receipt": "docs/tornhold-instructions.json",
+    "primary_repeats": 420,
+    "diagnostics": "docs/tornhold-instruction-diagnostics.json",
+    "diagnostic_repeats": 60,
+    "controlled_profiles": 6,
+    "throughput_benchmark_run": false
   }
 }
