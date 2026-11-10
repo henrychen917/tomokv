@@ -45,3 +45,9 @@ OLD-DELVAR-HINTS.txt
 /docs/*.tsv
 /docs/*.gz
 /docs/*.patch
+
+# Compatibility links for the unchanged publication instrument.
+!/docs/lbplanner/
+/docs/lbplanner/*
+!/docs/lbplanner/generic-cells.txt
+!/docs/lbplanner/multidb-cells.txt
