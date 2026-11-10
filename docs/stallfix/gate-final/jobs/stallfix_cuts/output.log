@@ -1,4 +1,0 @@
-  row budget: 900s; median=4.325s; correctness-plan-fallback; read-cut FIFO bounded wait (1s)
-  read-cut FIFO bounded wait (1s)                      ok
-  row budget: 900s; median=4.315s; correctness-plan-fallback; read-cut FIFO bounded wait (2s)
-  read-cut FIFO bounded wait (2s)                      ok

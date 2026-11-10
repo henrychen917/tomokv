@@ -1,5 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=rootcompat-replication rootcompat-hscan rootcompat-redact; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	2.100000	rootcompat replication vs Redis 7.4
-FAIL	1.980000	rootcompat redact vs Redis 7.4
-FAIL	2.040000	rootcompat hscan vs Redis 7.4

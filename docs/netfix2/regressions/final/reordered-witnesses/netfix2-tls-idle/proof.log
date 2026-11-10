@@ -1,5 +1,0 @@
-PASS tls-idle-1s-uring-db1 {'busy_tls13_pings': 40, 'exact_byte_paths': 4}
-PASS tls-idle-1s-uring-db16 {'busy_tls13_pings': 40, 'exact_byte_paths': 4}
-PASS tls-idle-1s-epoll-db1 {'busy_tls13_pings': 40, 'exact_byte_paths': 4}
-PASS tls-idle-1s-epoll-db16 {'busy_tls13_pings': 40, 'exact_byte_paths': 4}
-tls-idle: 4/4 legs passed

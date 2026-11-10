@@ -374,7 +374,7 @@ def prepare_alt(source):
     source.mkdir(parents=True)
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         tar.extractall(source, filter='data')
-    patch = ROOT / 'docs/rlfence2/alt.patch'
+    patch = ROOT / 'tests/fixtures/read-local-alt.patch'
     subprocess.run(['patch', '--batch', '-p1', '-d', str(source)],
                    input=patch.read_bytes(), check=True)
     save(source / 'source-receipt.json', dict(commit=FROZEN_POST, archive_sha256=sha(archive),

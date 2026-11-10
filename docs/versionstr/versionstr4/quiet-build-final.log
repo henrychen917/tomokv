@@ -1,3 +1,0 @@
-$ taskset -c 112-127 tools/quietcheck.sh 112-127 18340
-
-exit=0

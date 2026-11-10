@@ -1,7 +1,0 @@
-ok	23.570000	notification compatibility setbit vs Redis 7.4
-ok	43.230000	notification compatibility setpast vs Redis 7.4
-ok	52.060000	notification compatibility emptystore vs Redis 7.4
-ok	43.970000	notification compatibility writemiss vs Redis 7.4
-ok	45.060000	notification compatibility objectmiss vs Redis 7.4
-ok	145.190000	notification compatibility expiredstore vs Redis 7.4
-ok	57.150000	notification compatibility flush vs Redis 7.4

@@ -1,2 +1,0 @@
-ok	1.110000	FLIP session handover S2 and close fences (ASAN+TSAN)
-ok	0.010000	FLIP WATCH alias allocation rollback (db1/db16)

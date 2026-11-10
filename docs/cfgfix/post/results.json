@@ -1,7 +1,0 @@
-{
-  "oracle-oracle-tcp": 79,
-  "1s-epoll-tcp": 79,
-  "1s-uring-tcp": 79,
-  "2s-epoll-tcp": 79,
-  "2s-uring-tcp": 79
-}

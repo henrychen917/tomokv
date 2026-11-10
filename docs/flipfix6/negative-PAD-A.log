@@ -1,8 +1,0 @@
-{"leg": "2s-uring-0-db1-exec", "pass": true, "flips": 1, "ping_max": 5.000616189092398, "error": null}
-{"leg": "2s-uring-1-db1-exec", "pass": true, "flips": 1, "ping_max": 5.000475178472698, "error": null}
-{"leg": "2s-epoll-0-db1-exec", "pass": true, "flips": 1, "ping_max": 5.000209947116673, "error": null}
-{"leg": "2s-epoll-1-db1-exec", "pass": true, "flips": 1, "ping_max": 5.00031778588891, "error": null}
-{"leg": "2s-uring-0-db16-exec", "pass": true, "flips": 1, "ping_max": 5.000314464792609, "error": null}
-{"leg": "2s-uring-1-db16-exec", "pass": true, "flips": 1, "ping_max": 5.000091191381216, "error": null}
-{"leg": "2s-epoll-0-db16-exec", "pass": true, "flips": 1, "ping_max": 5.000267771072686, "error": null}
-{"leg": "2s-epoll-1-db16-exec", "pass": true, "flips": 1, "ping_max": 5.000362987630069, "error": null}

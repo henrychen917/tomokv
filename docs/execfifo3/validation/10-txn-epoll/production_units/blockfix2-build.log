@@ -1,3 +1,0 @@
-  row budget: 900s; median=0.04s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); build dependency: make build/blockfix2-db0-unit,build/blockfix2-unit
-make: 'build/blockfix2-unit' is up to date.
-make: 'build/blockfix2-db0-unit' is up to date.

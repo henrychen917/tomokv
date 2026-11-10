@@ -1,8 +1,0 @@
-  row budget: 900s; median=1.34s; correctness-plan-fallback; zc borrow battery
-  zc borrow battery                                    ok
-  row budget: 900s; median=0.02s; correctness-plan-fallback; zc fired (zc_sends=N)
-  zc fired (zc_sends=20)                               ok
-  row budget: 900s; median=1.39s; correctness-plan-fallback; zc borrow battery under ASAN
-  zc borrow battery under ASAN                         ok
-  row budget: 900s; median=0.02s; correctness-plan-fallback; zc ASAN clean
-  zc ASAN clean                                        ok

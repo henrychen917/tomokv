@@ -1,2 +1,0 @@
-gate invocations 120 / 120 Tcl legs 12 errors 1
-complete-internal: failed verdict, geometry or arm identity; unresolved rows: txnorder FIFO live fairness

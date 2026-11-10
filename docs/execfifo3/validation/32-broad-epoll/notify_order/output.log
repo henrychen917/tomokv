@@ -1,2 +1,0 @@
-  row budget: 900s; median=71.28s; correctness-plan-fallback; keyspace lazy-expiry order vs Redis 7.4
-  keyspace lazy-expiry order vs Redis 7.4              ok

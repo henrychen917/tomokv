@@ -1,2 +1,0 @@
-22:03:57 post-tcl run1 rc=1 2 ok 1 FAIL
-22:03:57 post-tcl DONE

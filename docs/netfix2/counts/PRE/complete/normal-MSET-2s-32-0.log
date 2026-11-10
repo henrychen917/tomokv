@@ -1,4 +1,0 @@
-/home/user/Projects/cx-netfix2/build/netfix2/counts/trace /home/user/Projects/cx-netfix2/build/netfix2/counts/scopes/PRE-normal/probe /home/user/Projects/cx-netfix2/build/netfix2/counts/scopes/PRE-normal/complete.ranges 8c9790 8c97a0 000000000002bb30 MSET 2s 32 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 331973

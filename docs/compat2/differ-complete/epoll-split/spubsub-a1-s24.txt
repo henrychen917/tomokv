@@ -1,1 +1,0 @@
-DIFFER spubsub: 824 checks, 0 diffs -> PASS

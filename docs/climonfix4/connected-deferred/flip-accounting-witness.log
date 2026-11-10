@@ -1,1 +1,0 @@
-FAIL core concurrency: the plan saw a held close, not a half-removed one

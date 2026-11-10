@@ -1,3 +1,0 @@
-PRE 1
-POST 1
-PAD-A 1

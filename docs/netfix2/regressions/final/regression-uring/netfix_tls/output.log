@@ -1,2 +1,0 @@
-  row budget: 900s; median=10.04s; correctness-plan-fallback; netfix NT4.7 TLS default cipher parity
-  netfix NT4.7 TLS default cipher parity               ok

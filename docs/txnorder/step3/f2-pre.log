@@ -1,1 +1,0 @@
-FAIL: F2 APPLY must yield while EXEC holds WATCH and waits on its open bracket

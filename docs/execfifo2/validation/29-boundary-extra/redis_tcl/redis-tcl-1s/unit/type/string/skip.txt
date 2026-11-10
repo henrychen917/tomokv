@@ -1,2 +1,0 @@
-GETDEL propagate as DEL command to replica
-GETEX without argument does not propagate to replica

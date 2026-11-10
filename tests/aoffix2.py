@@ -385,7 +385,7 @@ def off_writer(s):
 
 
 def tlswake():
-    """Report-only PFPERSIS.1 shape from docs/round4/pf-persist-tls/shapes.py.
+    """Report-only PFPERSIS.1 shape from `git show v1.0:docs/round4/pf-persist-tls/shapes.py`.
 
     TLS 1.3, depth 32, 1/4/16 KiB, eight batches, idle then 1 ms PINGs.
     """

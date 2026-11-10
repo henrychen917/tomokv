@@ -1,1 +1,0 @@
-The first fenced-expiry build used the preceding inline budgets 156560/159480. Its finite command scopes added instructions through compiler inlining changes and were rejected. These are actual POST trace/build receipts; the PRE receipts remain in the main counts directory and repository history. No rate was measured. The selected 159000/161500 trial is in counts-expiry-tuned.

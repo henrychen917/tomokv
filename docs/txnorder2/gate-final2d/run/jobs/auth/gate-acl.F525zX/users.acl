@@ -1,1 +1,0 @@
-user default on nopass sanitize-payload ~* &* +@all

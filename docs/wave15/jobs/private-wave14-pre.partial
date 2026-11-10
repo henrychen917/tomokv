@@ -1,4 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=wave14_order rootcompat-stringlimit; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	9.340000	wave14 script EXEC wake publication order
-FAIL	4.440000	rootcompat stringlimit vs Redis 7.4

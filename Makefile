@@ -1,11 +1,4 @@
-# flipfix7: source-derived cold FLIP budgets and finite 80-cell command scopes.
-# See docs/flipfix7/budgets/selected.json; no server/load-generator tuning.
-# Wave14 compile-only budgets: PRE/POST IPA deltas and linked-body trials.
-# See docs/wave14/budgets/selected.json; unedited hot bodies prefer headline identity.
-# Wave13: compile-only IPA/linked-body trials plus finite fanout instruction scopes.
-# Selected values and exceptions: docs/wave13/budgets/final-selected.json.
-# s1pair-land: all 59 pinned units checked against the paper build; unchanged inputs keep
-# its budgets. Fresh IPA/body trials retain the four scripting/CONFIG pins (docs/s1pair-land).
+# Release builds preserve the per-object compiler budgets and link order below.
 CXX      ?= g++
 JEDIR    ?= /home/user/Projects/refs/jemalloc/_install
 # jemalloc is optional: without it the tree still builds and runs, using the deterministic portable
@@ -128,13 +121,6 @@ $(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
 	python3 tools/assert_map.py --output $@ --cxx "$(CXX)"
 
 
-# protofix: cold decoder IPA growth is +34. Compile-only trials in
-# docs/protofix/budgets retain ordinary dispatch/owner/read-local bodies;
-# remaining compiler differences are listed in the linked identity receipt.
-# Wave 7: compile-only per-unit trials in docs/wave7/budgets and
-# docs/wave7/budgets-dispatch preserve headline or lane POST hot bodies where
-# changes compose. The second sweep scores dispatch call sites, not just changed
-# group counts. Residuals and command-scope counts remain explicit merit inputs.
 
 # Opt-in lottery observation arm. Production sources and default objects remain
 # untouched; the copied tree adds only DEBUG-armed counters, never pause points.
@@ -212,18 +198,6 @@ $(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ) $(OBJ) $(SERVER_ONLY_OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
 
-# SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
-# wave1b (seven correctness lanes + climon fix ec0317384): IPA unit 22058 -> 22490 (src) and
-# 22015 -> 22447 (db0). Compile-only scans 25743-26300 / 25670-26300 with per-body attribution
-# (docs/wave1b/identity/budget-trials): at every clean value the only non-lane changes are the
-# climon fix's drain and the three helper copies its two changed callers now inline; fewest changed
-# bodies at 26145 (= 26146) / 26220.
-# compat3: compile-only PRE/POST IPA re-derivation and body-scored neighbour trials
-# are retained in docs/compat3/budgets. Residual parser/TLS spillover remains a merit input.
-# wave4 integration: 102 compile-only IPA trials across all 29 pinned units;
-# 85 distinct object bodies judged with the gate linked-instruction normalizer
-# against headline and the four frozen lane POSTs. See docs/wave4/budgets/selected.json.
-# Preserve established budgets on tied body scores; composed residuals remain merit inputs.
 $(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=28900
 $(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=29459
 
@@ -231,65 +205,16 @@ $(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-gro
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10626
-# storefix5: include the cold APPEND/accounting growth in the db0 unit budget.
-# The 14099 trial retains PRE fresh-key SET counts; the old budget spilled one
-# extra register per insert. Both replacement and insert scopes (batches 1/32,
-# both modes/atomic settings) are recorded in docs/storefix5/counts/string14099-*.
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=14099
 # Armed handlers include the same implementation; incremental builds must see its edits.
 $(BUILD_ROOT)/src/cmd/t_string_notify.o $(BUILD_ROOT)/db0/src/cmd/t_string_notify.o: src/cmd/t_string.cc
-# ACLKEYS4's physical namespace argument changes only blocking list publication.
-# Keep every other list body identical; tools/archive/tools/aclkeys4_audit.py checks all bodies.
 $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25633
-# PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
-# for every ordinary command and storage body; tools/archive/tools/psfix_artifacts.py audits both variants.
-# wave1b: IPA unit +58 in both namespaces (racefix/authfix); scans 31297-31400 / 31629-31760: no
-# unattributed body and fewest changed bodies at 31330 / 31725.
-# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-# wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31379 kept, db0 31776).
-# wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
-# at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
-# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2).
-# s1pair: the CONFIG owner verdict grows this unit (+206 initial); scans 34250-34600 keep every
-# linked body outside CONFIG/scripting PRE-identical at 34330-34332, 34337-34339, ...
-# (tools/s1pair_budgets.py); 34338 is the middle of one such run.
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34338
-# SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body.
-# CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-# txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
-# perfex2: the two cold inline sample resets need 31737 to retain every ordinary
-# body from the merged perfex POST. Complete-body trials: docs/perfex2/budgets.py.
-# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-# s1pair: +203 initial; scans 34400-34750 leave only the Server::flipctl_debug_dump inline
-# (same inlining, different tie order at every budget); 34515 is the middle of 34513-34517.
 $(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34515 --param max-inline-insns-auto=16
-# PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
-# in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
-# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-# wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (src 34437 kept, db0 34840).
-# aoforder: the cold ticket/stable-order helpers add IPA size. These budgets retain
-# every ordinary hot body in both namespaces; docs/aoforder records the comparison.
-# wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (37179 / db0 37578).
 $(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=38714
 $(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=40650
-# SV9 publishes save status only on cold completion/abort edges.
-# wave1b: savefix's capture cancellation grows both units by 130; scans 14584-14760 / 14457-14620:
-# FlatStore::insert stays PRE and every changed body is savefix's at 14718 (= 14720); db0 fewest at 14562.
-# txnfix2: preserve PRE's ordinary store bodies after the cold unit-intent cleanup addition.
-# persistfmt: cold FUNCTION2 metadata and MERGE add 1372/1200 IPA instructions.
-# NOFLUSH namespace rebasing adds 205 of the normal-unit instructions.
-# The normal unit needs one 128-insn neighbour step beyond that delta to retain
-# its load-loop register allocation. Serverless PRE/POST counts and the bounded
-# compile-only trials are recorded in docs/persistfmt/snapshot-ipa.json and counts/.
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16899
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16339
-# CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
-# both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
-# These are compile-time inlining budgets, with no runtime option or request-path branch.
-# datafix1: compact SPOP, survivor rebuilding and RAND parsing add 1688/1670
-# initial IPA instructions in the ordinary/db0 units.
-# Bounded scans in docs/datafix1/budgets restore all ordinary storage hot bodies;
-# the chosen budgets also minimize unrelated set-body changes among those trials.
 $(BUILD_ROOT)/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26445
 # The live intset limit adds cold collection code; retain the ordinary FlatStore body.
 $(BUILD_ROOT)/db0/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26685
@@ -299,214 +224,22 @@ $(BUILD_ROOT)/db0/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-gro
 # remaining GEO-helper differences; these settings do not claim that strict check passes.
 $(BUILD_ROOT)/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14751
 $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16462
-# The parent EXECABORT store adds four IPA instructions. Keep PRE's namespaced
-# xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
-# every function, including ordinary xshard_plain_prepare and cold clones.
-# CD13b adds owner-side GEO metadata calls; +51/+53 retains ordinary command/notify bodies
-# in both namespaces. tools/archive/tests/cd13b_audit.py checks every emitted body and linker selection.
-# ACLKEYS3's held registration and final-task wake preserve every outside-path
-# xshard body at these budgets, including both blocked queue specializations.
-# aclfix's pre-execution wake check grows both units by 30 insns (+29/+30 here); the
-# remaining non-blocking deltas are listed in docs/aclfix/identity.
-# flipfix's FLIP/fingerprint code adds 8 insns here (+24 on its own branch). wave1b: merged unit
-# +73/+73; scans 127820-127950 / 126421-126500: every changed body lane-identical or a lane
-# composite, fewest at 127880 (127878-127882) / 126482 (126480-126485).
-# txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
-# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-# wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (src 127924 kept, db0 126566).
-# wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (128012 / db0 126680).
-# publishfix: the publisher adds 14 IPA instructions per namespace. Compile-only
-# trials (docs/publishfix/identity/budgets) retain all command/hot bodies and reduce
-# unrelated changes to normalize_multi_blocking_pop plus its cold fragment at
-# 128042; db0 has no unrelated changes at 126710. Remaining spillover is reported.
-# moverfix: compile-only per-unit re-derivation restores all selected hot bodies;
-# 128550 / 127250 leave 77 explicitly inventoried xshard bodies for merit review.
-# See docs/moverfix/identity-budgets and identity-tuned/README.md.
-# notifyorder: physical-record routing/salvage, overwrite expiry observation and
-# opaque sink callbacks grow IPA by 390/395 instructions. Per-unit dumps and trials
-# (docs/notifyorder/budgets-callback) retain the audited command bodies at 128432/127105.
-# Remaining cold spillover is enumerated for merit review, not treated as identity.
-# wave4 merge (provisional, additive lane deltas over 128042/126710): compat2 +76/+68,
-# moverfix +508/+540, notifyorder +390/+395; the wave-4 budget commit re-derives both.
-# notifycompat: source-accurate IPA deltas are +2531/+2526. Bounded per-unit
-# trials (docs/notifycompat/budgets-final) reduce unrelated compiler spillover;
-# db0 prepare and shared execution deltas remain inventoried for merit review.
-# Wave 9: compile-only IPA and neighbour trials are in docs/wave9/budgets.
-# Selection preserves command bodies before residual hot and cold bodies.
-# Wave 8: 58 IPA surveys and 103 compile-only trials across all 29 pinned units.
-# Selected budgets and full reference scores: docs/wave8/budgets/selected.json.
-# wave8b: compile-only re-derivation of every affected pinned IO/scatter unit;
-# Final trials/scores: docs/wave8b/budgets-exact/selected.json, including
-# exact callback starts and WAIT slices. Identity is a proxy; merit is pending.
-# Instruction scopes and the maintainer merit still decide, not body identity.
-# flushfix2: compile-only surveys and finite command scopes are retained in
-# docs/flushfix2/{budgets,budget-counts}. Keep the range escape cold and preserve
-# the ordinary cancellation leaves' inlining; full-body spillover is inventoried.
-# flushfix3: merged headline scope trials select auto=14/18; ordinary fan-out
-# must not pay for the cold FLUSH helpers or their alignment spillover.
-# Exact finite counts and rejected trials: docs/flushfix3/{counts,budget-counts}.
-# clientcompat: cold EXEC growth is isolated in clientcompat.cc. Bounded compile
-# and executed-count trials retain ordinary scopes at/below PRE; see
-# docs/clientcompat/budgets and the instruction census (including outlined STL).
-# aofblock: cancellation's cold receipt claim adds 16 IPA insns in each namespace.
-# Preserve the PRE inline headroom; see MEASURE-REQUEST-aofblock.md.
-# blockrace: folding the completion offerers into blocking_task_done net-shrinks the xshard IPA
-# unit by 56 insns (137236 -> 137180). Keep the PRE headroom so only blocking bodies move:
-# 168554 - 56 = 168498. See MEASURE-REQUEST-blockrace.md.
 $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168498 --param max-inline-insns-auto=14 --param early-inlining-insns=5
-# AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-# perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-# clientcompat notification capture adds cold code; the 161773 neighbour keeps
-# the ordinary hash routing inlined (finite trial receipts in budgets/).
-# blockwake: the F6/F7/F8 blocking-registry edits in blocking.inc grow this db0 unit by 181
-# insns (136675 -> 136856), which tipped FlatStore::find past the threshold that inlines
-# Slice::key_eq and added ~35 instr/op to db0 GET/SET/INCR/MGET. Restore the PRE headroom
-# (171751 + 181); the normal namespace was unaffected. No runtime option or request-path branch.
-# wave16: merged blockwake + parkwake growth is 245 insns (136675 -> 136920); 172012 is the
-# re-derived pin for the merged tree (see the wave16 note above $(BUILD_ROOT)/src/main.o).
-# blockrace: the same fold shrinks the db0 xshard IPA unit by 63 insns (136936 -> 136873);
-# 172028 - 63 = 171965 keeps the PRE headroom. See MEASURE-REQUEST-blockrace.md.
 $(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171965 --param max-inline-insns-auto=18 --param early-inlining-insns=10
-# ACL key extraction is isolated from the IO templates. Keep the merged baseline's
-# ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
-# aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
-# object provides to the link stay identical; docs/aclfix/identity lists the cold ACL deltas.
-# flipfix adds 8 insns (+8/+24 on its own branch). wave1b: merged unit +802/+818 (aclfix + authfix
-# + flipfix); scans 35360-35500 / 35300-35420: only the two weak-copy differences every value shows
-# (no vector<Client*>::push_back copy; flipfix's close_client) at 35369 (35367-35370) / 35324 (= 35326).
 $(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=36195
 $(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=36137
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
-# Retiring the reorder pass changes GCC 13's translation-unit inlining budget. These budgets
-# retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
-# The complete byte audit records the remaining split read-local writeback/Unix exceptions
-# in MEASURE-REQUEST.md; they are not counted as byte-identity passes.
-# R7's cold role selectors shift two budgets slightly. tests/reorder_noop.py locks
-# all 169 current off-path bodies, including O1 pipeline passes and O6 prefetch.
-# Compiler code-generation locks only: no runtime option or request-path branch.
-# Round-3 direct split entries retain the split owner's timer inline, ordinary IO
-# deque outline and split read-local epoch outlines at these compiler budgets.
-# Reorder cleanup removes cold parser/controller code. Keep each database variant's
-# original FIFO inlining decisions; r7shadow_noop audits all 336 surviving bodies.
-# The cold topology demotion and relaxed cache gauge perturb the fused TU's budget.
-# tools/archive/tools/rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
-# Pin the single-database R7 TU's compiler budget as well: its source is unchanged,
-# and both surviving parser bodies must retain their PRE instructions.
-# Encoding setup and LBOSC3 change the boot parser and policy initialization in these two
-# TUs. Preserve PRE's ordinary parser/TLS/writeback bodies; lbstall_artifacts checks
-# both complete hot inventories. No override changes in unaffected TUs.
-# wave1b (seven correctness lanes on 1ba80bd4e): merged IPA units main +925/+909, genthread
-# +643/+643, rl2s +654/+654, db0 reorder +675. Compile-only scans with per-body attribution and
-# call-structure additivity (docs/wave1b/identity/budget-trials): main.o and db0 rl2s.o emit one
-# object across every scanned value (same-headroom values used); src rl2s 162300 (clean from
-# 162265, fewest non-additive dispatch call counts); genthread 129420 / 129640 (flipfix's own
-# values left unattributed hot bodies once savefix/clientfix/racefix share these TUs); db0 reorder
-# 148258 (148256-148261: no unattributed hot body, the ordinary TLS serve lambda back to PRE).
-# perfio IO4.19: the cold epoll DEL adds 8 IPA instructions. +12 at rl2s (src) and
-# genthread (db0) preserves every ordinary hot body; docs/perfio/inline-probe.json.
-# rlresize (armed atomic growth reserves its resize record; FLUSH's replacement table is bounded by
-# a prepared snapshot): IPA units +7 where the atomic preflight is emitted (main, genthread, rl2s,
-# reorder), +37 where clear() is (t_server, aof), +44 in xshard. Compile-only scans against
-# 991d48f65 (docs/rlresize/identity/budget-trials): main.o and db0 rl2s.o emit one object across
-# every scanned value and keep their budgets; each changed value is the scanned one with no changed
-# hot body and the fewest other changes. Remaining bodies are cold/growth paths, listed in
-# MEASURE-REQUEST-rlresize.md: GCC now outlines prepare_resize_retirement in genthread/reorder, so
-# maybe_start_shrink and snapshot_control_pass call it instead of inlining it.
-# wave2 (perfio + perfex/perfex2 + rlresize + dbdefault on 991d48f65; lottery has no production
-# change): merged IPA units vs 991d48f65 t_server +37/+51, aof +37/+44, xshard +44/+51, main +6/+51,
-# genthread -2/+43, rl2s -3/+42, reorder -2/+43 (src/db0). Compile-only scans with per-body
-# attribution against 991d48f65 and each lane tip's own default build (docs/wave2/identity/
-# budget-trials, 3 rounds): no selected hot body may differ from 991d48f65 except perfex's own
-# executor bodies (drain_tasks*, ExLoopT run), which must equal perfex's; then fewest unattributed
-# and lane-differing bodies, fewest changed bodies, nearest the headroom-preserving value. main.o x2
-# and db0 rl2s.o emit one object at every scanned value and keep their budgets; src rl2s 162305
-# (162305-162306; perfio/rlresize/provisional values left 1-2 dispatch bodies changed); genthread
-# 129447 (129447-129448) / 129704 (129704-129706; every other db0 value kept perfex's own dispatch
-# drift or an unattributed body); db0 reorder 148358 (148357-148360: perfex's serve-lambda drift
-# gone); t_server 31379 / 31776; aof 34437 / 34840 (db0 make_room_for differs from 991d48f65 only
-# in register allocation at every clean value); xshard 127924 / 126566 (fewest bodies: rlresize's
-# cold prepare_commands drift back to 991d48f65).
-# wave3 (respresume + rlfix + mkfix2 A/B + aoforder + hexpread, lanes on 991d48f65, merged on
-# f821104a9): merged IPA units vs f821104a9 genthread +388/+386, rl2s +454/+452, reorder +454/+441,
-# main +204/+204, aof +1662/+1656, xshard +79/+79, t_server +23/+23 (src/db0). Compile-only scans
-# (docs/wave3/identity/budget-trials, 3 rounds) classify every emitted body against f821104a9,
-# 991d48f65 and each lane tip's own default build: no selected hot body may differ from f821104a9
-# unless it equals the build of the lane that changed it (respresume+mkfix2 dispatcher composites
-# excepted, being each lane's own change); then fewest unattributed and lane-differing bodies,
-# fewest changed bodies, nearest the headroom-preserving value (f821104a9 budget + unit growth),
-# off a plateau edge. main.o x2 and db0 rl2s.o emit identical bodies at their old value and at
-# that centre: kept. src genthread 129975 (129975-129976 fewest; one D at every value: wave2's
-# atomic_prepare_capacity_read_local, same size and call targets as f821104a9) / db0 130179
-# (130178-130181); src rl2s 162716 (clean 162672-162720); db0 reorder 148772 (148769-148774) with
-# rlfix's max-inline-insns-auto=14 (keeps f821104a9's r7_fused_sweep_impl); src reorder.o gains
-# its first override: GCC's default limit is 1.4 x the running minimal unit (final 105268 at
-# f821104a9, -fdump-ipa-inline), i.e. 147375 + 454 = 147829 preserves f821104a9's headroom; the
-# default allowed 181 more insns, which inlined Rob::quiesced into drive_tls and
-# flush_xshard_commits into the R7 sweep; 147794 (147792-147795) is clean; aof 37179 (37177-37182)
-# / db0 37578 (37576-37580; one D at every value: aoforder's record_post_image_impl no longer
-# inlines Slice::key_eq in the merged unit); xshard 128012 / db0 126680; t_server 31388 / 31787.
-# ntfix4 composition on bce4eb0aa: initial IPA units grow by 127 (main),
-# 142 (genthread), 172 (rl2s/reorder). Eight reference and 56 merged compile-only
-# trials retain the main/rl2s budgets and select genthread 130084/130316,
-# reorder 147950/148944. All selected hot bodies outside the 20 composed
-# dispatchers equal headline or ntfix3; every remaining delta is retained in
-# docs/ntfix/ntfix4/identity. Scans and selection: docs/ntfix/ntfix4/selected.json.
-# compat2b: 29 reference recompiles and merged compile-only trials select the
-# per-unit budgets in docs/compat2b/selected.json. Preserve headline or compat2
-# hot bodies; composed C1/N3/N4 dispatchers remain explicit merit inputs.
-# mset8fix: the credit doorbell grows the IO units' initial IPA size by 126/129 (main, genthread,
-# rl2s, reorder), xshard by 27/29 and snapshot by 50 (src/db0). Compile-only scans over +/-40 around
-# each size-compensated value (tools/archive/tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,
-# the fewest changed hot bodies, then the fewest unintended and total changes, centred on the widest
-# plateau of identical code: genthread 134842/135506, rl2s 168119/169904, reorder 152568 (kept)/
-# 153552, xshard 168287/171751, snapshot 16744/16184, db0 main 150687. src main keeps 152477: it is
-# the only scanned value that keeps the 2s parse_and_dispatch PRE-identical. Remaining compiler
-# spillover is inventoried in docs/mset8fix/identity; instruction scopes in docs/mset8fix/counts.
-# iowake: F5/F4/F9 grow the initial IPA units by 8 (main), 32 (genthread, rl2s, reorder), 53 (aof)
-# and 131 (snapshot), src and db0 alike; xshard is unchanged. Compile-only scans around each
-# size-compensated value (tools/archive/tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every
-# unedited hot body PRE-identical (main restores the 2s parse_and_dispatch); remaining cold
-# spillover is inventoried in docs/iowake/identity.
-# wave16 (blockwake + parkwake + iowake merged over 8be4f68323): the lanes re-derived these pins
-# independently, so all 24 grown units (main, genthread, rl2s, reorder, xshard, t_server, climon,
-# latency_tracking, multidb, fliplisten, aof, snapshot; src and db0) are re-derived for the merged
-# tree by tools/archive/tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest
-# changed bodies in a +-24 compile-only scan (select). Eight units that still changed an unedited hot
-# body (parse_and_dispatch, flush_ready<false,..>, FlatStore) were re-ranked over a +-96 scan by
-# unintended hot bodies first (refine; docs/wave16/budgets/refined.json). The GET/SET/INCR/MGET/MSET
-# command-scope counts equal the 8be4f68323 receipts (docs/wave16/counts).
 $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=152850
-# txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
-# RL4.3/RL4.4 add only cold miss/delete work. Preserve the PRE hot-body inlining
-# choices; docs/rlfix records the complete byte inventory and compile-only trials.
-# clockcut: adding the post-dequeue refresh grows each IO IPA unit by 23.
-# Compile-only per-unit trials (docs/clockcut/budget-selected.json) reduce unrelated
-# body spillover; the remaining differences are reported for merit review.
-# wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
-# clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135382
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168640
 # Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
 $(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=49063
 $(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=48797
-# wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
-# wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
-# (src / db0). Compile-only scans 147770-147970 / 148760-148949 (docs/wave3/identity/
-# budget-trials-r7) against the pre-regeneration cx-wave3 objects: no selected hot body may change;
-# then fewest changed bodies. src 147778 (147776-147779) and db0 148779 (148777-148780) change only
-# r7_ReadLocalDemotionPlan::prepare, its new read_local_commands_overlap .part.0 clone and
-# discarded COMDAT copies (the non-R7 demotion plan and FlatStore helpers; genthread.o's are linked).
-# snapfix: see the note above $(BUILD_ROOT)/src/core/genthread.o.
 $(BUILD_ROOT)/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153118
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
 $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150834 --param max-inline-insns-auto=18
-# RL1: retain the measured ALT spelling and its fused GET placement controls.
-# docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
-# txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
-# wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
-# and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
 $(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135922 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=170325
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
@@ -539,7 +272,7 @@ tsan:
 # The armed-write block cache's ownership laws as assertions: the cache and the QSBR retire ring
 # are owner-private (one thread, no lock), each cached block is resident exactly once, each class
 # list matches its counter, and every shard's retire sink names its CURRENT owner. Debug-only: the
-# residency set and the sampled list walk cost far more than the path they guard. DESIGN-P0REPLY.md.
+# residency set and the sampled list walk cost far more than the path they guard.
 rlcachedbg:
 	$(MAKE) BUILD_ROOT=build/rlcachedbg CXXFLAGS='$(CXXFLAGS) -DTOMO_RL_CACHE_DEBUG' all
 	cp build/rlcachedbg/tomokv build/tomokv-rlcachedbg

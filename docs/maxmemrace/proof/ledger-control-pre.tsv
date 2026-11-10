@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=maxmemrace; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	52.310000	maxmemrace CONFIG SET maxmemory reaches every owner before +OK

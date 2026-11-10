@@ -1,8 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (1s)
-ok	0.390000	perfio XREADGROUP bounded delivery + Redis metadata (2s)
-ok	1.020000	Climon armed refresh + stale-store suppression control
-ok	0.210000	LB sampler exceptional cleanup + negative control
-ok	0.190000	LB monitor plan handoff + negative controls
-ok	0.050000	waits config publication + admission unit
-ok	1.010000	reads never wait for retirement quiescence

@@ -1,4 +1,0 @@
-/home/user/Projects/cx-persistfmt/build/persistfmt/counts/trace /home/user/Projects/cx-persistfmt/build/persistfmt/counts/scopes/FINAL4-normal/probe /home/user/Projects/cx-persistfmt/build/persistfmt/counts/scopes/FINAL4-normal/complete.ranges 88e5b0 88e5c0 000000000002bb20 MGET 2s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 10153

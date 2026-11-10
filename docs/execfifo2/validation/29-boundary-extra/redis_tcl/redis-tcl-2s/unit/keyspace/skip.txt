@@ -1,8 +1,0 @@
-COPY basic usage for $type set
-COPY basic usage for hashtable hash
-COPY basic usage for list - listpack
-COPY basic usage for list - quicklist
-COPY basic usage for listpack hash
-COPY basic usage for listpack sorted set
-COPY basic usage for skiplist sorted set
-COPY basic usage for stream

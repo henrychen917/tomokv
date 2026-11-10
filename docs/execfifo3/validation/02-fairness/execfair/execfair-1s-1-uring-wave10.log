@@ -1,4 +1,0 @@
-{"keys": ["wave10:header:0", "wave10:header:1"], "geometry": [[7, 7], [4, 4]]}
-{"keys": ["wave10:sha-case:0", "wave10:sha-case:2"], "geometry": [[11, 3], [7, 7]]}
-{"keys": ["wave10:function-case:0", "wave10:function-case:1"], "geometry": [[1, 1], [6, 6]]}
-{"passed": true, "witnesses": [{"shape": "header", "result": [[1, 10], 11]}, {"shape": "sha-case", "result": [[1, 10], 11]}, {"shape": "function-case", "result": [[1, 10], 11]}]}

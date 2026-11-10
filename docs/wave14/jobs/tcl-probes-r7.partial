@@ -1,4 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=redis_tcl; NOT A RECEIPT
-ok	0.010000	release build (+footprint locks)
-FAIL	15.970000	Redis 7.4.10 Tcl passing subset (2s)
-FAIL	15.800000	Redis 7.4.10 Tcl passing subset (1s)

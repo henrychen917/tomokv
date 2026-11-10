@@ -1,6 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	631.150000	txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)
-ok	10.840000	txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)
-ok	19.950000	txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)
-ok	15.020000	txnfix4 CD5.3 lapsed hash fields during a capture (all legs)
-ok	3.960000	txnfix4 TM5.1 execfix proves two owners (all legs)

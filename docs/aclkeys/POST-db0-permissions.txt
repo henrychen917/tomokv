@@ -1,2 +1,0 @@
-permissions: 142 admission/denial assertions PASS
-exit=0

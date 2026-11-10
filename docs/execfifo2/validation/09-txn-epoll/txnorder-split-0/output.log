@@ -1,2 +1,0 @@
-  row budget: 900s; median=48.06s; correctness-plan-fallback; txnorder battery (split, atomic 0)
-  txnorder battery (split, atomic 0)                   ok

@@ -1,4 +1,0 @@
-/home/user/Projects/cx-storefix5/build/storefix5/counts/trace /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/candidate-db0/probe /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/candidate-db0/complete.ranges 8cd720 8cd730 000000000002bb30 SET 2s 32 1 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 20531

@@ -1,8 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; mode equivalence part (all execution modes and knobs)
-DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor
-DIFFER geometry: split (--ratio 6:2 --net-io uring)
-DIFFER matrix: atomic={} seeds={7 19 20 23 21} legs=0 logs=/home/user/Projects/cx-netfix2/build/gate-run.q7BKWB/jobs/differ-equivalence/differ
-  mode equivalence: all execution/knob combinations          FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.q7BKWB/jobs/differ-equivalence/differ/mode-equivalence-21.log)
-DIFFER FANOUT FAIL: [Errno 2] No such file or directory: '/home/user/Projects/cx-netfix2/build/gate-run.q7BKWB/jobs/differ-equivalence/differ/mode-equivalence-21/stream.json'
-DIFFER GATE: pass=0 fail=2 runtime=0m00s
-  mode equivalence part (all execution modes and knobs) FAIL

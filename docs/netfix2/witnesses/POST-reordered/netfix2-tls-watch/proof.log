@@ -1,5 +1,0 @@
-PASS tls-watch-1s-uring-db1 4 TLS WATCH/suppression arms; exact 20KB replies; no store borrows
-PASS tls-watch-1s-uring-db16 4 TLS WATCH/suppression arms; exact 20KB replies; no store borrows
-PASS tls-watch-1s-epoll-db1 4 TLS WATCH/suppression arms; exact 20KB replies; no store borrows
-PASS tls-watch-1s-epoll-db16 4 TLS WATCH/suppression arms; exact 20KB replies; no store borrows
-tls-watch: 4/4 legs passed

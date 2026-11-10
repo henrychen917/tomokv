@@ -1,4 +1,0 @@
-/home/user/Projects/cx-mset8fix/build/mset8fix/counts/trace /home/user/Projects/cx-mset8fix/build/mset8fix/counts/scopes/pre-atomfix6-normal/probe /home/user/Projects/cx-mset8fix/build/mset8fix/counts/scopes/pre-atomfix6-normal/all-executable.ranges 8fc4d0 8fc4e0 000000000002cc40 GET 2s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 1555

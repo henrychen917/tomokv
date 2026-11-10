@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
 """Link a scheduling twin from the current production objects; never boot here."""
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
 import shlex
 import subprocess
 import source_tokens as cpp
-from wave14 import ROOT, sha, save
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def sha(path):
+    with Path(path).open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def save(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + '\n')
 
 
 def undefined_symbol(obj, role):

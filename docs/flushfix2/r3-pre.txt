@@ -1,2 +1,0 @@
-R3 pins=1 reads_before_flush=1 physical_clears=1 occ_misses=1 resurrections=1
-exit=1

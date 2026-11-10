@@ -1,9 +1,0 @@
-{
-  "run": "build/gate-run.SLOFlq",
-  "log": "build/cfgfix/regression-complete.log",
-  "status": "ABORTED for complete replacement on corrected listener binary",
-  "binary_sha256": "4e1f39f4659e3b09942c8a7e10b1af897617664659ce09b2eea95c843550a453",
-  "last_observed_successful_private_rows": 219,
-  "reason": "A final source review found transferred UNIX accept completions incorrectly filtered during TCP rebind; fixed in 2b46f48c5c. Rerun the entire selected matrix on the corrected binary.",
-  "stopped": 1793581223.8045223
-}

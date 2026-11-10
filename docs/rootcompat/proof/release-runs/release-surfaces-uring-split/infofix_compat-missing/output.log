@@ -1,2 +1,0 @@
-  row budget: 900s; median=1.15s; correctness-plan-fallback; Redis 7.4 infofix missing (both modes/engines/runtimes)
-  Redis 7.4 infofix missing (both modes/engines/runtimes) ok

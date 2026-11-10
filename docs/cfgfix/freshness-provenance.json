@@ -1,8 +1,0 @@
-{
-  "gate_job": "build/gate-run.bgE6rS/jobs/production_units",
-  "targets": 57,
-  "passing": 57,
-  "source_tree": "db7a16b7e2bd23fb8e53d48a46b9a898fdf14ad4",
-  "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
-  "freshness_sha256": "9b457653b7e8301e97f66a564cb7129464785b6badaf49fe5e3197d6efb623d0"
-}

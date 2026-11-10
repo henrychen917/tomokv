@@ -1,6 +1,0 @@
-loaded 1500032 atomic 1 writer mset
-phase A (no BGSAVE):  {'mset': 188432, 'mget': 130768, 'torn': 0, 'bgsaves': 0, 'capture_samples': 0, 'samples': 875}
-phase B (BGSAVE loop): {'mset': 49312, 'mget': 31872, 'torn': 0, 'bgsaves': 14, 'capture_samples': 421, 'samples': 435}
-  A: torn per million MGET = 0.0, capture active in 0 % of samples
-  B: torn per million MGET = 0.0, capture active in 97 % of samples
-server rc 0

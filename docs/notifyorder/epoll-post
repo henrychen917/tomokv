@@ -1,2 +1,0 @@
-#!/bin/bash
-exec /home/user/Projects/cx-notifyorder/build/tomokv --net-io epoll "$@"

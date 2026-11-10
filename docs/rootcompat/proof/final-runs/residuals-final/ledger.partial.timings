@@ -1,4 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	4.340000	rootcompat stringlimit vs Redis 7.4
-FAIL	20.580000	rootcompat hx3 vs Redis 7.4
-FAIL	1.140000	rootcompat errorstats vs Redis 7.4

@@ -1,8 +1,0 @@
-participants captured
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-wave15/tools/wave15_aof_stacks.py", line 109, in <module>
-    for kind in ('participants', 'large'): run(kind)
-                                           ^^^^^^^^^
-  File "/home/user/Projects/cx-wave15/tools/wave15_aof_stacks.py", line 85, in run
-    raise AssertionError('PRE hang did not reproduce')
-AssertionError: PRE hang did not reproduce

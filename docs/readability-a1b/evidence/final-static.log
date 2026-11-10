@@ -1,3 +1,0 @@
-PASS changed Python files parse
-PASS three exact git-mv restorations
-PASS unchanged gate script, expected counts and label fixture

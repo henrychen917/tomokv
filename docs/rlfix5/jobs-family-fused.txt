@@ -1,2 +1,0 @@
-snapshot-uring
-snapshot-epoll

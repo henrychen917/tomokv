@@ -1,9 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-ok	4.330000	rootcore inbox
-ok	8.480000	rootcore eval
-ok	1.640000	rootcore segments
-ok	4.830000	rootcore notify
-ok	22.040000	rootcore functions
-FAIL	11.470000	rootcore waitaof
-FAIL	41.760000	rootcore misconf

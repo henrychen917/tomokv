@@ -106,7 +106,7 @@ def run(a):
 
         # Isolate each class: expired uses the existing keyless transport while
         # keymiss rides the command batch. Their relative delivery order is a
-        # separate PRE concern (docs/compat2/notification_order.py).
+        # separate PRE concern (`git show v1.0:docs/compat2/notification_order.py`).
         positive = ka + ':positive'
         assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'Ex') == b'OK'
         events(sub)

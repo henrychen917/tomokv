@@ -1,8 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=source_identity reorder_sync reorder_identity reorder_engagement abba_selftest cfgfix2-maxmemory; NOT A RECEIPT
-ok	0.050000	release build (+footprint locks)
-ok	7.440000	cfgfix2 maxmemory (oracle, both modes and engines)
-ok	150.880000	production source identity + stable assertion ids
-ok	454.470000	ABBA comparison + saturation negative controls
-ok	24.620000	R7 generated envelope parity
-ok	19.730000	R7 production engagement (both database runtimes)
-ok	194.400000	R7 FIFO twin off-path identity + negative controls

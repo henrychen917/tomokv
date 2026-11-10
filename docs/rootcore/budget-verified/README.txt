@@ -1,1 +1,0 @@
-Each trial owns a separate probe directory and ranges file. Earlier exploratory outputs with a shared ranges file were discarded as invalid. Budget-only trials 159268/159276/159284/159296 leave the +2 db0 non-atomic MSET cost unchanged. The db0-only has_values branch-probability annotation is checked again by the final full 48-cell census.

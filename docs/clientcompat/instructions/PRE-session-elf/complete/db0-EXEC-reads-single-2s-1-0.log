@@ -1,4 +1,0 @@
-/home/user/Projects/cx-clientcompat/build/clientcompat/counts/trace /home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/PRE-session-db0/probe /home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/PRE-session-db0/elf.ranges 89fcb0 89fcc0 000000000002bb50 EXEC-reads-single 2s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS scope EXEC-reads-single 2s batch=1 header_rejected=0 replies=4
-COUNT 22750

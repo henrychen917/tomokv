@@ -1,4 +1,0 @@
-{
-  "error": "requested physical CPU geometry is unavailable in current affinity",
-  "verdict": "FAIL"
-}

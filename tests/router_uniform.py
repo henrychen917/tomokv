@@ -153,7 +153,7 @@ def run(a):
             keys, balanced = distribution(c, data, a.output)
             if record:
                 sha = hashlib.sha256(a.binary.read_bytes()).hexdigest()
-                expected_sha = (Path(__file__).parents[1] / 'docs/dispatchfix/pre-sha256.txt').read_text().split()[0]
+                expected_sha = (Path(__file__).parents[1] / 'tests/fixtures/router-pre-sha256.txt').read_text().split()[0]
                 assert sha == expected_sha, 'fixture recording requires the authenticated PRE binary'
                 rows, checks = dataset(c, oracle, keys)
                 (a.output / 'commands.json').write_text(json.dumps(rows, indent=2) + '\n')

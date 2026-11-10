@@ -1,2 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	2.010000	wave15 generic errorstats (Redis oracle, both modes, engines, atomic and namespaces)

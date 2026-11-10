@@ -1,4 +1,0 @@
-AT REST after writers stopped: 0 of 16 pairs differ []
-flush counters: {'atomic_flush_units': '0', 'atomic_flush_range_reads': '0', 'atomic_flush_post_versions': '0', 'atomic_flush_script_conflicts': '0', 'atomic_flush_collapses': '0', 'atomic_flush_slow_collapses': '0', 'atomic_flush_slow_work': '0'} groups 540203 cleanup_slow 253556
-mode=1s flush_ms=0 W=4 R=2 extra=[] stats={'mset': 664464, 'mget': 259840, 'flush': 0, 'both_nil': 0, 'one_nil': 0, 'diff': 0, 'errors': 0}
-server rc 0

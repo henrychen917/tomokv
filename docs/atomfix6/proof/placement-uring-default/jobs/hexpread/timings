@@ -1,8 +1,0 @@
-ok	1.220000	hexpread torn (1s)
-ok	3.410000	hexpread replies (1s)
-ok	1.200000	hexpread deferred (1s)
-ok	1.250000	hexpread OBJECT expiry (1s)
-ok	1.210000	hexpread torn (2s)
-ok	3.400000	hexpread replies (2s)
-ok	1.210000	hexpread deferred (2s)
-ok	1.210000	hexpread OBJECT expiry (2s)

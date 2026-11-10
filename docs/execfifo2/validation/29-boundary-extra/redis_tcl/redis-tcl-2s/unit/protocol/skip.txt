@@ -1,8 +1,0 @@
-RESP3 attributes
-RESP3 attributes on RESP2
-RESP3 attributes readraw
-test argument rewriting - issue 9598
-test big number parsing
-test bool parsing
-test large number of args
-test verbatim str parsing

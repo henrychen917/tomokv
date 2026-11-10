@@ -1,2 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	989.800000	txnorder FIFO live fairness

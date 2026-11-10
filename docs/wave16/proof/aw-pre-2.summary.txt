@@ -1,2 +1,0 @@
-22:25:15 aw-pre-2 run1 rc=0 2 ok 0 FAIL
-22:25:15 aw-pre-2 DONE

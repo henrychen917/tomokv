@@ -2823,11 +2823,11 @@ def self_test():
 
         def test_optional_cell_fields_are_strict_and_part_of_calibration_shape(self):
             from gate_measurements import shape
-            original = read_cells(ROOT / "docs/lbplanner/generic-cells.txt")
+            original = read_cells(ROOT / "tests/fixtures/lb-generic-cells.txt")
             self.assertEqual(len(original), 14)
             self.assertTrue(all(not (c.server_flags or c.dbs or c.poll or c.keys) for c in original))
             self.assertNotIn("dbs", coverage(original))
-            template = (ROOT / "docs/lbplanner/generic-cells.txt").read_text().splitlines()[0]
+            template = (ROOT / "tests/fixtures/lb-generic-cells.txt").read_text().splitlines()[0]
             with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
                 source = Path(directory) / "cells.txt"
                 source.write_text(template + " | srv=--databases 16 | dbs=-1 | poll=info1hz | keys=40000000\n")
@@ -2849,7 +2849,7 @@ def self_test():
                              ["--logfile", "literal $(touch nope)"])
 
         def test_multidb_cell_inventory_and_exact_connection_assignment(self):
-            cells = read_cells(ROOT / "docs/lbplanner/multidb-cells.txt")
+            cells = read_cells(ROOT / "tests/fixtures/lb-multidb-cells.txt")
             self.assertEqual([c.id for c in cells],
                 ["h05m", "h06m", "p8gm", "p8sm", "d32gm_l1", "d32sm_l1", "x9m_32_l0", "m8gm_l0"])
             self.assertEqual([(c.mode, c.read_local) for c in cells[4:6]], [("2s", 1)] * 2)
@@ -2878,7 +2878,7 @@ def self_test():
         def test_multidb_population_and_select_witness_reject_db0_only_load(self):
             import copy
             from types import SimpleNamespace
-            cell = read_cells(ROOT / "docs/lbplanner/multidb-cells.txt")[1]
+            cell = read_cells(ROOT / "tests/fixtures/lb-multidb-cells.txt")[1]
             selected = [0]
             def reply(*args):
                 if args[0] == "SELECT":
@@ -2923,7 +2923,7 @@ def self_test():
 
         def test_server_flags_reach_both_arm_boots(self):
             from types import SimpleNamespace
-            cell = read_cells(ROOT / "docs/lbplanner/multidb-cells.txt")[1]
+            cell = read_cells(ROOT / "tests/fixtures/lb-multidb-cells.txt")[1]
             with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
                 children = mock.Mock()
                 children.start.side_effect = RuntimeError("intercepted before boot")
@@ -2939,7 +2939,7 @@ def self_test():
 
         def test_fused_only_smoke_needs_no_unmeasured_split_ratio(self):
             from types import SimpleNamespace
-            args = SimpleNamespace(cells=ROOT / "docs/lbplanner/multidb-cells.txt", subset="full", only="h06m")
+            args = SimpleNamespace(cells=ROOT / "tests/fixtures/lb-multidb-cells.txt", subset="full", only="h06m")
             self.assertEqual(selected_split_ratio(args, 8), "not-applicable (1s only)")
             self.assertEqual(selected_split_ratio(args, 32), measured_ratio("abba", 32))
             args.only = "d32gm_l1"

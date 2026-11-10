@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=netfix2-boot; NOT A RECEIPT
-ok	0.150000	release build (+footprint locks)
-ok	8.720000	netfix2 boot

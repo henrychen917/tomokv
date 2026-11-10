@@ -1,8 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; persistfmt repeated aoffix2 error (1s, epoll)
-  persistfmt repeated aoffix2 error (1s, epoll)        ok
-  row budget: 900s; median=-s; no-history-conservative-default; persistfmt repeated aoffix2 error (1s, uring)
-  persistfmt repeated aoffix2 error (1s, uring)        ok
-  row budget: 900s; median=-s; no-history-conservative-default; persistfmt repeated aoffix2 error (2s, epoll)
-  persistfmt repeated aoffix2 error (2s, epoll)        ok
-  row budget: 900s; median=-s; no-history-conservative-default; persistfmt repeated aoffix2 error (2s, uring)
-  persistfmt repeated aoffix2 error (2s, uring)        ok

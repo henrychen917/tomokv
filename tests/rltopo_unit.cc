@@ -197,7 +197,7 @@ struct CoreConcurrencyTest {
     };
 
     // Exact private-reply and demotion contracts for the single-attempt cleanup. Mutants in
-    // tools/archive/tools/readreply_proof.py change the real header, never these expected results.
+    // `git show v1.0:tools/archive/tools/readreply_proof.py` change the real header, never these expected results.
     inline static uint64_t readreply_hash = 0;
     inline static bool readreply_publish_conflict = false;
     inline static bool readreply_use_epochs = false;

@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; correctness-plan-fallback; persistfix2 LASTSAVE and rewrite INFO
-  persistfix2 LASTSAVE and rewrite INFO                ok

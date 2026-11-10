@@ -1,8 +1,0 @@
-round 0: BGSAVE 'Background saving started'; first torn []; frozen re-read during capture None; AT REST after capture: 0 of 16 differ []
-round 1: BGSAVE 'Background saving started'; first torn []; frozen re-read during capture None; AT REST after capture: 0 of 16 differ []
-round 2: BGSAVE 'Background saving started'; first torn []; frozen re-read during capture None; AT REST after capture: 0 of 16 differ []
-round 3: BGSAVE 'Background saving started'; first torn []; frozen re-read during capture None; AT REST after capture: 0 of 16 differ []
-round 4: BGSAVE 'Background saving started'; first torn []; frozen re-read during capture None; AT REST after capture: 0 of 16 differ []
-round 5: BGSAVE 'Background saving started'; first torn []; frozen re-read during capture None; AT REST after capture: 0 of 16 differ []
-cleanup_slow 17462421 pending 0
-server rc 0

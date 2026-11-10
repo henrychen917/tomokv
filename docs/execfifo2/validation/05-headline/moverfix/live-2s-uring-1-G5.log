@@ -1,3 +1,0 @@
-conservation smove atomic 0 members 8000
-conservation smove atomic 0 members 2000
-conservation rpoplpush atomic 0 members 2000

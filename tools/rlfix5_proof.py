@@ -15,7 +15,7 @@ from rlfix5_elf import image as runtime_image
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'build/rlfix5/counts'
-DOC = ROOT / 'docs/rlfix5/counts'
+DOC = ROOT / 'build/rlfix5/counts'
 census.BUILD, census.DOC = BUILD, DOC
 
 

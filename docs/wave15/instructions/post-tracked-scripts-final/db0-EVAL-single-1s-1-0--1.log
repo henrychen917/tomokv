@@ -1,3 +1,0 @@
-/home/user/Projects/cx-wave15/build/wave15/counts/trace /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-tracked-scripts-final-db0/probe /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-tracked-scripts-final-db0/lua.ranges 8fcf50 8fcf60 000000000002cc30 EVAL-single 1s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope

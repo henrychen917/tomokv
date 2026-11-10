@@ -1,4 +1,0 @@
-{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-sdx1qype", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "5.69 7.34 11.74 11/3655 1395177", "pid": 1395177}
-{"case": "geo-count", "centers": 20, "failures": 0, "sample": []}
-{"exit": 0, "lifecycle": "stop", "load": "5.69 7.34 11.74 13/3649 1395253", "pid": 1395177}
-{"axes": [[0, 0]], "case": "geo-count", "mode": "2s", "result": "PASS"}

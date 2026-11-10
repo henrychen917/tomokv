@@ -1,4 +1,0 @@
-Check compression with recompress
-Crash due to wrongly recompress after lrem
-LINSERT correctly recompress full quicklistNode after inserting a element after it
-LINSERT correctly recompress full quicklistNode after inserting a element before it

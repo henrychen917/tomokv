@@ -1,1 +1,0 @@
-PASS exec1s word (concurrent reader, byte wrap, wide-write control)

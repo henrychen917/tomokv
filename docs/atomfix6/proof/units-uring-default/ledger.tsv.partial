@@ -1,1 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=atomic_units core_units exbatch_units splitlocal_units lbplanner_units flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units; NOT A RECEIPT

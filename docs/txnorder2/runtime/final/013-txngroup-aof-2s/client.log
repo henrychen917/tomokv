@@ -1,3 +1,0 @@
-directed SMOVE result 1 state [[], [b'a', b'm', b'z']]
-directed MSETNX result 1 state [b'from-set', b'from-msetnx']
-PASS AOF

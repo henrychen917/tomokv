@@ -1,8 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (1s, epoll)
-  writeback mixed replies and live knob bounds (1s, epoll) ok
-  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (1s, uring)
-  writeback mixed replies and live knob bounds (1s, uring) ok
-  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (2s, epoll)
-  writeback mixed replies and live knob bounds (2s, epoll) ok
-  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (2s, uring)
-  writeback mixed replies and live knob bounds (2s, uring) ok

@@ -1,2 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	0.010000	txnorder2 busy owner inbox wake

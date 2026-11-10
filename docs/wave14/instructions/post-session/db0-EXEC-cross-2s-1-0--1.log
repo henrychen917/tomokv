@@ -1,3 +1,0 @@
-/home/user/Projects/cx-wave14/build/wave14/counts/trace /home/user/Projects/cx-wave14/build/wave14/counts/scopes/post-session-db0/probe /home/user/Projects/cx-wave14/build/wave14/counts/scopes/post-session-db0/lua.ranges 8c99a0 8c99b0 000000000002bb60 EXEC-cross 2s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS scope EXEC-cross 2s batch=1 header_rejected=0 replies=4

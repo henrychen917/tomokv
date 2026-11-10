@@ -1,7 +1,0 @@
-{
-  "positive": 0,
-  "negative": 1,
-  "stdout": "normal _ZN4tomo22function_snapshot_saveERSt6vectorIhSaIhEERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE _ZN4tomo10AofManager23append_function_journalENS_5SliceE\ndb0 _ZN8tomo_db022function_snapshot_saveERSt6vectorIhSaIhEERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE _ZN8tomo_db010AofManager23append_function_journalENS_5SliceE\n",
-  "stderr": "",
-  "negative_stderr": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-readability-a1/build/readability-a1/formatted/tools/wave14_capture.py\", line 34, in <module>\n    print(ns, undefined_symbol(prefix/'src/snapshot/snapshot.o', 'function_snapshot_save'),\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-readability-a1/build/readability-a1/formatted/tools/wave14_capture.py\", line 21, in undefined_symbol\n    raise ValueError(f'{obj}: expected one undefined {role}, found {len(matches)}')\nValueError: /home/user/Projects/cx-readability-a1/build/readability-a1/wave14-symbols-formatted/src/snapshot/snapshot.o: expected one undefined function_snapshot_save, found 0\n"
-}

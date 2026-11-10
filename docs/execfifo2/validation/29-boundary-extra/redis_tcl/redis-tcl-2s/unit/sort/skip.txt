@@ -1,2 +1,0 @@
-SORT STORE quicklist with the right options
-SORT sorted set BY nosort works as expected from scripts

@@ -1,2 +1,0 @@
-23:31:01 post-fifo-c run1 rc=0 2 ok 0 FAIL
-23:31:01 post-fifo-c DONE

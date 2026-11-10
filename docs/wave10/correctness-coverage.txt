@@ -1,3 +1,0 @@
-FAILED compat2 None None None
-FAILED redis_tcl None None None
-requirements 334 complete 334 passing attempt 332

@@ -15,7 +15,7 @@ import sys
 
 from lottery_runner import DEFAULT_HITS, registry, write_json
 
-# Pause-point primitives from docs/flakeaudit2/remaining-v2.md, by family.
+# Pause-point primitives from `git show v1.0:docs/flakeaudit2/remaining-v2.md`, by family.
 PAUSE_POINT = {
     'spinprobe': 'W10 parser-park publication + hold',
     'atomic_torn': 'W2 held read cut / lead fragment',

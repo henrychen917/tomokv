@@ -1,5 +1,0 @@
-ok	0.040000	release build (+footprint locks)
-ok	48.370000	txnorder battery (fused, atomic 0)
-ok	48.380000	txnorder battery (fused, atomic 1)
-ok	48.030000	txnorder battery (split, atomic 0)
-ok	47.930000	txnorder battery (split, atomic 1)

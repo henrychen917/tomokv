@@ -1,4 +1,0 @@
-/home/user/Projects/cx-cfgfix/build/cfgfix/counts/trace /home/user/Projects/cx-cfgfix/build/cfgfix/counts/scopes/POST-db0/probe /home/user/Projects/cx-cfgfix/build/cfgfix/counts/scopes/POST-db0/complete.ranges 8b38d0 8b38e0 000000000002cbf0 INCR 1s 32 1 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 33666

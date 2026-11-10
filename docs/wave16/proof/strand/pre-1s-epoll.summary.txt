@@ -1,4 +1,0 @@
-03:44:06 pre-1s-epoll run1 rc=1 "passed": false windows=3/3 stranded_trials=3
-03:44:09 pre-1s-epoll run2 rc=1 "passed": false windows=3/3 stranded_trials=3
-03:44:13 pre-1s-epoll run3 rc=1 "passed": false windows=3/3 stranded_trials=3
-03:44:13 pre-1s-epoll DONE

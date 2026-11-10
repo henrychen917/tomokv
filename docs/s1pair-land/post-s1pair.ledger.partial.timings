@@ -1,5 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	1.950000	s1pair EVAL-ROTATE (all modes)
-ok	36.350000	s1pair EVAL-GROW (all modes)
-ok	1.170000	s1pair EVAL-ADMISSION (all modes)
-ok	204.920000	s1pair CONFIG-OWNER (all modes)

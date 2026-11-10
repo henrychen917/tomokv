@@ -1,3 +1,0 @@
-   text	   data	    bss	    dec	    hex	filename
-11035715	 120873	1198608	12355196	 bc867c	/home/user/Projects/cx-stallfix/build/stallfix/pre-src/build/tomokv
-11038051	 120873	1198608	12357532	 bc8f9c	/home/user/Projects/cx-stallfix/build/tomokv

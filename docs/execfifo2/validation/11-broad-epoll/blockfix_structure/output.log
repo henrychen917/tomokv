@@ -1,2 +1,0 @@
-  row budget: 900s; median=47.23s; correctness-plan-fallback; blockfix CC4.19 XINFO structural counts vs Redis 7.4
-  blockfix CC4.19 XINFO structural counts vs Redis 7.4 ok

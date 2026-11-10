@@ -1,7 +1,0 @@
-{
-  "native": "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv",
-  "native_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
-  "launcher_sha256": "ff5e4d4c0f12122493fdddc2f1267b169b86bec13dda05264feff7bd3db03fd9",
-  "source_sha256": "35b02a75ca50dbbf6cb62021b3ff5a479e6511e1ddae2ae0e63bc839d6f4f245",
-  "purpose": "Exec the exact native arm with same-user ptrace allowed; attach only after an assertion fails. No production source, binary bytes, bounds or success criteria change."
-}

@@ -1,4 +1,0 @@
-127c127
-<     server.atomic_apply_close(self.id(), state.apply_open);
----
->     // NEGATIVE CONTROL (scratch only): the hand-off leaves the apply window open (H2).

@@ -1,6 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=wave14_epoll_eof wave14_eof_data rootcompat-errorstats; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	0.000000	wave14 epoll coalesced EOF (normal)
-FAIL	0.010000	wave14 epoll coalesced EOF (db0)
-FAIL	1.150000	wave14 half-close accepted input
-FAIL	1.150000	rootcompat errorstats vs Redis 7.4

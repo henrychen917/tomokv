@@ -1,5 +1,0 @@
-pubsub
-spubsub
-fanout
-string
-list

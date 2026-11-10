@@ -1,4 +1,0 @@
-/home/user/Projects/cx-clientcompat/build/clientcompat/counts/trace /home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/POST-session-db0/probe /home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/POST-session-db0/elf.ranges 8a8180 8a8190 000000000002bb50 TRACK-EXEC-single 2s 4 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS scope EXEC-single 2s batch=4 header_rejected=0 replies=16
-COUNT 100351

@@ -1,7 +1,0 @@
-{
-  "command": "LC_ALL=C taskset -c 16-31 make -j16 all",
-  "exit_code": 0,
-  "freshness": "taskset -c 16-31 make -q all",
-  "freshness_exit": 0,
-  "sha256": "c9b173b64222d38963cfffc85949c6be49e6f6d86aa8f1893793b35ab72ec780"
-}

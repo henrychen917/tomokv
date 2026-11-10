@@ -1,4 +1,0 @@
-atomic boundary entry=0
-arity mechanism: cases=42 fired={'wrong': 35, 'unknown_or_wrong': 4, 'unknown': 2, 'syntax': 1} outer_controls=6 compat_controls=9 valid_control_errors=0
-ARITY: 63 checks, 0 failures -> PASS
-atomic boundary restored=0

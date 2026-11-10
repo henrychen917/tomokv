@@ -203,7 +203,7 @@ def latencyfix_inventory(binary):
     The manifest also pins physical clone counts. No historical body is removed,
     and compare() still checks every opcode, operand and literal in all 326.
     """
-    path = Path(__file__).resolve().parents[1] / 'docs/latencyfix/reorder-inventory.json'
+    path = Path(__file__).resolve().parents[1] / 'tests/fixtures/reorder-latency-inventory.json'
     expected = json.loads(path.read_text())
     actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
     assert actual == expected, 'latencyfix named inventory differs'
@@ -216,7 +216,7 @@ def wave8_inventory(binary):
     The explicit manifest is derived from the frozen latencyfix inventory by
     replacing only promotion callback arguments; no body or clone is dropped.
     """
-    path = Path(__file__).resolve().parents[1] / 'docs/wave8/reorder-inventory.json'
+    path = Path(__file__).resolve().parents[1] / 'tests/fixtures/reorder-inventory.json'
     expected = json.loads(path.read_text())
     actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
     assert actual == expected, 'wave8 named inventory differs'
@@ -317,7 +317,7 @@ def paper1_inventory_delta(expected):
     inventory exactly: bins/aofblock-POST-e25f8b6f, bins/blockrace-POST-37ad4491 (xshard
     budgets re-derived to 168498/171965), bins/tornread-PART1-2be78502,
     bins/tornread-PART2-b30bc3bb and tornhold's pre-hold merge af4dffe990 (tornread +
-    aofblock + readability phase 2; docs/tornhold-integration.json). Only
+    aofblock + readability phase 2; `git show v1.0:docs/tornhold-integration.json`). Only
     bins/tornhold-HOLD-18eb7a98 changes it, and the combined landing's inventory equals
     that link's, so the integration adds nothing of its own. t6wound is harness-only and
     readability phase 2 is binary-identical. The added body stays in the strict byte
@@ -372,7 +372,7 @@ def paper1_added_bodies(binary=None):
 
 def exec1s_expected(*, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False,
                     paper1=False):
-    path = Path(__file__).resolve().parents[1] / 'docs/wave8/reorder-inventory.json'
+    path = Path(__file__).resolve().parents[1] / 'tests/fixtures/reorder-inventory.json'
     expected = json.loads(path.read_text())
     for ns in ('tomo', 'tomo_db0'):
         stem = ns + '::ExLoopT<true>::fused_baseline_sweep()'
@@ -490,11 +490,11 @@ if __name__ == '__main__':
         # FlatStore::scan<...> .constprop.0 clone (+1): 146 -> 145. DB0 keeps
         # the two unique-key bodies and inlines scan (146). Budget-only trials
         # retaining those helper bodies change other hot bodies; retain POST.
-        # See docs/moverfix2/README.md for symbols, IPA decisions and trials.
+        # See `git show v1.0:docs/moverfix2/README.md` for symbols, IPA decisions and trials.
         # wave4: both edits compose additively: normal 146+1-1 = 146, DB0 146+1 = 147.
         expected['tomo'] -= 1
     if args.inventory in ('wave5', 'execfair', 'wave6'):
-        # All seven frozen lane links are inventoried in docs/wave5/r7-inventory.
+        # All seven frozen lane links are inventoried in `git show v1.0:docs/wave5/r7-inventory`.
         # Only fliplisten adds bodies: headline 146/147 + 6/6 = merged 152/153.
         for binary in (pre, post): fliplisten_inventory(binary, expected)
         for namespace in expected: expected[namespace] += 6

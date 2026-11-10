@@ -1,3 +1,0 @@
-oracle Redis 7.4.10
-PASS ntfix preauth: 23 exact cases, tls=False
-PASS ntfix frontier: 4 exact cases, tls=False

@@ -1,6 +1,0 @@
-{
-  "reason": "Preserve raw GEO dimensions and Redis floating-point operation order at cover-step boundaries.",
-  "POST_v1_sha256": "7c054d71ac18728be4949c1c3ac916633e99201cf3796c3c60e30cffa61b6472",
-  "POST_v2_sha256": "204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f",
-  "source_commit_before_GEO_followup": "7e1269cb4d"
-}

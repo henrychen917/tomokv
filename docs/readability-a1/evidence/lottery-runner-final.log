@@ -1,8 +1,0 @@
-..LOTTERY battery sha256=2170b1b2743febf20ae3bca57600df1e7b9393347c715bc1abe99038da8f3db7 markers_only=1
-..LOTTERY battery sha256=c2191372fdee175e1a1126fca04dd41c63c2954aea6d6dba0ef2fccd8632511d markers_only=1
-.LOTTERY battery sha256=88765b656cd4cb33a020fde250e10aac478ebe9bf312a9a7a528845a489ba344 markers_only=1
-...............
-----------------------------------------------------------------------
-Ran 20 tests in 0.122s
-
-OK

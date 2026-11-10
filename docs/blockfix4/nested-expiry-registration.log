@@ -1,5 +1,0 @@
-registration {'a': 'nested:0:a:0', 'b': 'nested:0:b:5', 'src': 'nested:0:src:1'} (True, "ERR Unbalanced 'xreadgroup' list of streams: for each stream key an ID or '>' must be specified.")
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-blockfix4/build/blockfix4/probe_nested.py", line 26, in <module>
-    raise AssertionError('waiter did not park')
-AssertionError: waiter did not park

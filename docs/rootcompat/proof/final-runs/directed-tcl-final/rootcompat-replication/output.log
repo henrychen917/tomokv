@@ -1,2 +1,0 @@
-  row budget: 900s; median=1.34s; correctness-plan-fallback; rootcompat replication vs Redis 7.4
-  rootcompat replication vs Redis 7.4                  ok

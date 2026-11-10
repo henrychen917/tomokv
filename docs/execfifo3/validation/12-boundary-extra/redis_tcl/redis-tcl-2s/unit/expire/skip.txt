@@ -1,7 +1,0 @@
-All TTL in commands are propagated as absolute timestamp in replication stream
-GETEX propagate as to replica as PERSIST, DEL, or nothing
-GETEX use of PERSIST option should remove TTL after loadaof
-RANDOMKEY: Lazy-expire should not be wrapped in MULTI/EXEC
-Redis should not propagate the read command on lazy expire
-SCAN: Lazy-expire should not be wrapped in MULTI/EXEC
-SET - use KEEPTTL option, TTL should not be removed after loadaof

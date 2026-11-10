@@ -1,2 +1,0 @@
-  row budget: 900s; median=297.48s; correctness-plan-fallback; rootcompat xsnotify vs Redis 7.4
-  rootcompat xsnotify vs Redis 7.4                     ok

@@ -78,7 +78,7 @@ std::string rejection_text(std::initializer_list<const char*> values, bool valid
 // Exercise the operator's actual example, so a valid parser plus a stale example
 // cannot produce a green row. This resolves placement but creates no server or socket.
 void documented_example() {
-    std::ifstream document("docs/CONFIGURATION.md");
+    std::ifstream document("docs/configuration.md");
     if (!document) fail("cannot read documented config example");
     const std::string markdown((std::istreambuf_iterator<char>(document)), {});
     const std::string marker = "```conf\n";

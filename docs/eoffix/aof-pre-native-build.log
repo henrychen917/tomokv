@@ -1,8 +1,0 @@
-/home/user/Projects/cx-eoffix/tests/eoffix_aof.cc: In function 'void deadline(int)':
-/home/user/Projects/cx-eoffix/tests/eoffix_aof.cc:16:18: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
-   16 |     (void)::write(STDERR_FILENO, message, sizeof(message)-1);
-      |           ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/home/user/Projects/cx-eoffix/tests/eoffix_aof.cc: In function 'void deadline(int)':
-/home/user/Projects/cx-eoffix/tests/eoffix_aof.cc:16:18: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
-   16 |     (void)::write(STDERR_FILENO, message, sizeof(message)-1);
-      |           ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

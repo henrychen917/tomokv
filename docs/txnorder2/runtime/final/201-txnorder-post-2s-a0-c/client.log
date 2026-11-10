@@ -1,2 +1,0 @@
-FAIL c AssertionError(('txnorder:1792670465558209406:10:local:109', 0))
-PASS armed

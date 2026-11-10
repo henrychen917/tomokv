@@ -1,10 +1,14 @@
-# Research tools
+# Build and gate tools
 
-Load drivers, measurement scripts, and machine/network setup utilities live
-here. They support experiments and analysis without becoming server runtime
-dependencies. The Makefile's `tools` target builds the listed load drivers;
-individual scripts may require the maintainer's reference binaries or NIC rig.
+This directory contains the source-map and formatting helpers, metadata
+generators, disposable correctness-control builders, and drivers referenced by
+the Makefile or retained tests. These tools are separate from the server runtime.
+Their generated artifacts belong under `build/`.
 
-[tailgen](tailgen/README.md) is the standalone smooth open-loop RESP driver for
-tail-latency cells. `make tailgen` builds it; `make tailgen-unit` runs its
-serverless correctness and pacing units.
+`make tools` builds the retained load drivers used by test and publication
+workflows. [tailgen](tailgen/README.md) is the smooth open-loop RESP driver;
+`make tailgen-unit` runs its serverless correctness and pacing units.
+
+Read the [publication gate guide](../docs/gates.md) before running a tool that
+starts a server or collects measurements. Reference binaries and the NIC test
+rig are supplied separately.

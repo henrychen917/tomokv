@@ -1,5 +1,0 @@
-ok	7.100000	torture under ASAN
-ok	1.030000	RYOW under ASAN
-ok	25.550000	atomic torn/window under ASAN
-ok	4.100000	atomic RYOW under ASAN
-ok	0.030000	ASAN clean

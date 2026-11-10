@@ -1,2 +1,0 @@
-ok	0.010000	release build (+footprint locks)
-FAIL	30.240000	tracking FLUSH reply order vs Redis 7.4

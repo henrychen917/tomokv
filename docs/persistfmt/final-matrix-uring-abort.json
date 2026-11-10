@@ -1,6 +1,0 @@
-{
-  "gate_pids": [
-    2453057
-  ],
-  "reason": "Stopped during production-unit rebuild: narrow loader trial omitted the production inline budget; correcting that budget before validation."
-}

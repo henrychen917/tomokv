@@ -203,7 +203,7 @@ def self_test(header, document):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config-header", type=Path, default=ROOT / "src/core/config.h")
-    parser.add_argument("--document", type=Path, default=ROOT / "docs/CONFIGURATION.md")
+    parser.add_argument("--document", type=Path, default=ROOT / "docs/configuration.md")
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--write", action="store_true", help="regenerate encoding and writeback rows from source")
     args = parser.parse_args()

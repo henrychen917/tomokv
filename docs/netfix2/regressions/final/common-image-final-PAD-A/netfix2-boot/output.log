@@ -1,2 +1,0 @@
-  row budget: 900s; median=3.53s; correctness-plan-fallback; netfix2 boot
-  netfix2 boot                                         FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.Vzxs1Y/jobs/netfix2-boot/proof.log)

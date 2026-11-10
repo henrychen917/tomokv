@@ -1,2 +1,0 @@
-22:17:03 post-p2-epoll run1 rc=0 148 ok 0 FAIL
-22:17:03 post-p2-epoll DONE

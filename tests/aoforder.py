@@ -92,7 +92,7 @@ def single():
                     assert not select.select([writer.s], [], [], 0)[0], 'writer bypassed held unit'
                     expected[victim] = b'9'
                     # Redis 7.4 exact group-then-SET replies are recorded in
-                    # docs/txnorder2/oracle-sequencing/result.json.
+                    # `git show v1.0:docs/txnorder2/oracle-sequencing/result.json`.
                 else:
                     wait_for(lambda: admin.cmd('GET', keys[victim]) == b'9',
                              'plain SET did not execute beneath the undecided group')

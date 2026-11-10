@@ -1,9 +1,0 @@
-FAIL 1s-uring-db1 replication field set [b'master_repl_offset', b'role']
-FAIL 1s-uring-db16 replication field set [b'master_repl_offset', b'role']
-FAIL 1s-epoll-db1 replication field set [b'master_repl_offset', b'role']
-FAIL 1s-epoll-db16 replication field set [b'master_repl_offset', b'role']
-FAIL 2s-uring-db1 replication field set [b'master_repl_offset', b'role']
-FAIL 2s-uring-db16 replication field set [b'master_repl_offset', b'role']
-FAIL 2s-epoll-db1 replication field set [b'master_repl_offset', b'role']
-FAIL 2s-epoll-db16 replication field set [b'master_repl_offset', b'role']
-rootcompat replication: 8 failed checks; evidence /home/user/Projects/cx-rootcompat/build/gate-run.GNSxKA/jobs/rootcompat-replication/proof

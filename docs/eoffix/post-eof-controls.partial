@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=wave14_eof_data; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	29.600000	wave14 half-close accepted input

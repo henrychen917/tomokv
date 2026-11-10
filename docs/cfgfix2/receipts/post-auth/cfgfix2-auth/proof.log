@@ -1,5 +1,0 @@
-{"mode": "redis", "engine": "oracle", "result": [{"databases": 1, "toggles": 83865, "connections": 46903}, {"databases": 16, "toggles": 84408, "connections": 46773}], "passed": true}
-{"mode": "1s", "engine": "uring", "result": [{"databases": 1, "toggles": 44717, "connections": 46680}, {"databases": 16, "toggles": 45016, "connections": 46483}], "passed": true}
-{"mode": "1s", "engine": "epoll", "result": [{"databases": 1, "toggles": 44844, "connections": 46416}, {"databases": 16, "toggles": 45115, "connections": 46688}], "passed": true}
-{"mode": "2s", "engine": "uring", "result": [{"databases": 1, "toggles": 48664, "connections": 46529}, {"databases": 16, "toggles": 49160, "connections": 46434}], "passed": true}
-{"mode": "2s", "engine": "epoll", "result": [{"databases": 1, "toggles": 47679, "connections": 46566}, {"databases": 16, "toggles": 47412, "connections": 46604}], "passed": true}

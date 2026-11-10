@@ -1,3 +1,0 @@
-PASS 2s TLS1.2 (tls_ktls_active=1) tracking+WATCH GET: server replies and survives client=('replied', True) rc=0
-PASS 1s TLS1.2 (tls_ktls_active=1) tracking+WATCH GET: server replies and survives client=('replied', True) rc=0
-== t20d_tls12_ktls_crash: 2 checks, 0 failed

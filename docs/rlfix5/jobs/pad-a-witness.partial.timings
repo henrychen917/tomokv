@@ -1,7 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	8.090000	rlfix5 monotonic (1s)
-FAIL	8.110000	rlfix5 monotonic (2s)
-FAIL	3.030000	rlfix5 yes-no (1s)
-FAIL	3.030000	rlfix5 yes-no (2s)
-FAIL	3.040000	rlfix5 no-yes (1s)
-FAIL	3.030000	rlfix5 no-yes (2s)

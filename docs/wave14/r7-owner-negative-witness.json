@@ -1,8 +1,0 @@
-{
-  "expected": "R7 owner did not acknowledge tracking during LB IoDrain",
-  "before_unit_sha256": "299c4d351459360b13c32b159f956c0ba191ce9b1c8b85706747e9962da82d61",
-  "positive_unit_sha256": "9cae6bf1ba18d79e5f21eda09abb1aa63208b13d80e34d0a4b3fd401d0d33a4e",
-  "gate_exit_code": 1,
-  "gate_record_sha256": "338797aef4fe436ac9293ac5f8093731821477b7c5485bcc28c0cf314d8f8486",
-  "log_sha256": "37f0d131c121de964a6504475866b1fbd0e6fec2bb107d4660e419af5d714aa0"
-}

@@ -1,2 +1,0 @@
-tests/gate.sh: line 5850: WAVE14_EOF_DIRECTORY: native EOF arm directory required
-GATE: family wave14_epoll_eof did not publish completion (exit 1); partial rows retained

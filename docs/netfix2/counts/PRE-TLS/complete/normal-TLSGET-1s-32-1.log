@@ -1,4 +1,0 @@
-/home/user/Projects/cx-netfix2/build/netfix2/counts/trace /home/user/Projects/cx-netfix2/build/netfix2/counts/scopes/PRE-TLS-normal/probe /home/user/Projects/cx-netfix2/build/netfix2/counts/scopes/PRE-TLS-normal/complete.ranges 8c97c0 8c97d0 000000000002bb30 TLSGET 1s 32 1 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 21714

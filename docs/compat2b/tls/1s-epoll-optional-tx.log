@@ -1,2 +1,0 @@
-armed: TLS1.3 tx; RX retained by OpenSSL
-ok: NET2 live KeyUpdate tx

@@ -1,5 +1,0 @@
-{
-  "exit": 1,
-  "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nlarge_copied_bytes=1048577 scratch_allocations=1\n",
-  "stderr": "FAIL: APPEND must copy the old value once without a merged scratch allocation\n"
-}

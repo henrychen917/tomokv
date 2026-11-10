@@ -1,4 +1,0 @@
-/home/user/Projects/cx-storefix5/build/storefix5/counts/trace /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/retirement-full-db0/probe /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/retirement-full-db0/complete.ranges 8cec20 8cec30 000000000002bb30 GET 1s 1 1 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 818

@@ -1,5 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=exbatch_units; NOT A RECEIPT
-ok	0.030000	release build (+footprint locks)
-ok	15.280000	exbatch publication unit + negative controls
-ok	40.370000	exbatch watch unit + negative controls
-ok	16.970000	exbatch metadata unit + negative controls

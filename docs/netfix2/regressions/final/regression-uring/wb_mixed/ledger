@@ -1,4 +1,0 @@
-ok	12.220000	writeback mixed replies and live knob bounds (1s, epoll)
-ok	12.220000	writeback mixed replies and live knob bounds (1s, uring)
-ok	12.480000	writeback mixed replies and live knob bounds (2s, epoll)
-ok	12.500000	writeback mixed replies and live knob bounds (2s, uring)

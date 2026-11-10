@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; INFO command/socket counters (TSan, both modes)
-  INFO command/socket counters (TSan, both modes)      ok

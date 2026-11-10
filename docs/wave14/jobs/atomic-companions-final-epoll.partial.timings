@@ -1,3 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	0.000000	tripwire arm/disarm round-trip
-ok	0.120000	pipelined same-conn program order (400 rolls)

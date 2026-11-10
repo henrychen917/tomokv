@@ -1,4 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=atomfix6-live-1s-0-16 atomfix6-live-2s-0-16; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	31.590000	atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 16)
-FAIL	27.410000	atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16)

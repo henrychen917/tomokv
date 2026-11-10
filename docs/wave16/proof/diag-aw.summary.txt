@@ -1,6 +1,0 @@
-22:38:07 diag-aw run1 rc=0 2 ok 0 FAIL
-22:39:16 diag-aw run2 rc=0 2 ok 0 FAIL
-22:40:24 diag-aw run3 rc=0 2 ok 0 FAIL
-22:41:33 diag-aw run4 rc=0 2 ok 0 FAIL
-22:42:41 diag-aw run5 rc=0 2 ok 0 FAIL
-22:42:41 diag-aw DONE

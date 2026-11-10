@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; blockfix CC4.19 XINFO structural counts vs Redis 7.4
-  blockfix CC4.19 XINFO structural counts vs Redis 7.4 ok

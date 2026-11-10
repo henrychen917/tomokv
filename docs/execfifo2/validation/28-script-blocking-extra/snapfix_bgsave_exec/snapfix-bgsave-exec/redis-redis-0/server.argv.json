@@ -1,1 +1,0 @@
-["taskset", "-c", "8-15", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "20104", "--dir", "/home/user/Projects/cx-execfifo2/build/gate-run.hNlTi7/jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0", "--save", "", "--enable-debug-command", "yes"]

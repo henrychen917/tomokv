@@ -1,8 +1,0 @@
-{
-  "archive": "docs/blockfix4/scope-workfiles.tar.xz",
-  "sha256": "1fd74bdfb505b094fdd0afb9ec24889b14953189dd0f5c7cab75fc6222c55bd5",
-  "files": 678,
-  "source_bytes": 555799266,
-  "archive_bytes": 1478008,
-  "purpose": "Retain the GDB symbol ranges and command files after retiring their generated working directory."
-}

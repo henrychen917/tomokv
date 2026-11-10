@@ -1,1 +1,0 @@
-LATENCY of expire events are correctly collected

@@ -1,2 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	36.650000	tracking REDIRECT close vs Redis 7.4

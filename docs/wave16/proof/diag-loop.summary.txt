@@ -1,3 +1,0 @@
-22:02:54 diag-loop run1 rc=0 9 ok 0 FAIL
-22:37:31 diag-loop run2 rc=0 9 ok 0 FAIL
-22:37:31 diag-loop DONE

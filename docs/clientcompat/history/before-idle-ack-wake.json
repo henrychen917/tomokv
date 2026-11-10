@@ -1,6 +1,0 @@
-{
-  "source_commit": "79c5ecbe0",
-  "archive": "docs/clientcompat/history/before-idle-ack-wake.json.gz",
-  "sha256": "51cc0a9a21cd37dce69d09ea06837756a6c7d5c58be4d3af670caaf39cfc79df",
-  "reason": "Tracking ON waits for idle owner refresh and its IO poll, each up to the 50 ms idle ceiling. The 24-geometry FLUSH-order job has 864 exact-wire cases per geometry; completed old-arm geometries pass but cannot fit the default 900 s watchdog. Fix the cold wake/poll path without changing test deadlines or command scopes."
-}

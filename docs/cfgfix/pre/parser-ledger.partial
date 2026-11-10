@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=config_unit; NOT A RECEIPT
-ok	0.390000	configuration docs match parser
-FAIL	5.320000	Redis config quoting + mid-value #

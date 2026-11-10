@@ -1,3 +1,0 @@
-Error:
-No supported events found.
-The LLC-loads:u event is not supported.
