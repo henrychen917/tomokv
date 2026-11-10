@@ -50,7 +50,7 @@ promise against unversioned plain writes.
 Scripts use a VM-instruction budget rather than Redis's wall-clock busy
 threshold. Cross-shard scripts stage declared keys in a bounded private
 workbench and can fail on resource limits or repeated conflicts. See
-[ordering and atomicity](architecture.md#ordering-and-atomicity) and
+[ordering and atomicity](ARCHITECTURE.md#ordering-and-atomicity) and
 [configuration](configuration.md#threads-placement-and-execution) for details
 and limits of the concurrency contract.
 

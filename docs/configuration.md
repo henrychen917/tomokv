@@ -139,7 +139,7 @@ never demotes it**: bytes remain unconsumed until lane work drains
 (`src/core/io_loop.h:3443`). Safety/ordering failures can still require owner
 execution. RYOW uses the connection's live write-ring predicate, including its
 arming fence, precise hashes/keysets and conservative overflow generation
-(`src/net/rob.h:557`, `:644`). See [Local reads](architecture.md#local-reads).
+(`src/net/rob.h:557`, `:644`). See [Local reads](ARCHITECTURE.md#local-reads).
 
 `reorder_retired=1` in 2s describes mode restriction, not removal of the 1s
 mechanism (`src/cmd/t_server.cc:2038`). Neither writeback deferrals nor reorder's

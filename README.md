@@ -100,7 +100,7 @@ prints the network test plan without starting workloads.
 
 ## Documentation
 
-- [Architecture](docs/architecture.md), [data plane](docs/architecture/data-plane.md),
+- [Architecture](docs/ARCHITECTURE.md), [data plane](docs/architecture/data-plane.md),
   and [control plane](docs/architecture/control-plane.md)
 - [Configuration](docs/configuration.md) and [INFO fields](docs/info.md)
 - [Redis compatibility](docs/redis-compatibility.md)
