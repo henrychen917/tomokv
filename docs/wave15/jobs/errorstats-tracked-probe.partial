@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=wave15_errorstats; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	2.160000	wave15 generic errorstats (Redis oracle, both modes, engines, atomic and namespaces)

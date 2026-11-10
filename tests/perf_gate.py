@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mandatory loopback regression cells. See GATES.md before collecting/reviewing a pin.
+"""Mandatory loopback regression cells. See docs/gates.md before collecting/reviewing a pin.
 
 check reads a pin and never writes it. measure writes raw experiments to a NEW directory.
 candidate validates a complete null experiment and writes a NEW candidate; installing it is

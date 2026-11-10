@@ -1,3 +1,0 @@
-/home/user/Projects/cx-wave15/build/wave15/counts/trace /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-errors-final-normal/probe /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-errors-final-normal/lua.ranges 8fbf20 8fbf30 000000000002cc30 INCR-ERR 2s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope

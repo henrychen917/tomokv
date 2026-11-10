@@ -1,4 +1,0 @@
-/home/user/Projects/cx-storefix5/build/storefix5/counts/trace /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/string14099-memory-normal/probe /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/string14099-memory-normal/complete.ranges 8cda60 8cda70 000000000002bb30 GET 1s 1 1 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 1056

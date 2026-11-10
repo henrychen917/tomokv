@@ -1,9 +1,0 @@
-Can't find a non busy port in the 24004-24004 range.
-    while executing
-"error "Can't find a non busy port in the $start-[expr {$start+$count-1}] range.""
-    (procedure "find_available_port" line 22)
-    invoked from within
-"find_available_port 24004 1"
-    (procedure "test_server_main" line 6)
-    invoked from within
-"test_server_main "

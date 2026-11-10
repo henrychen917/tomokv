@@ -1,3 +1,0 @@
-/home/user/Projects/cx-wave14/build/wave14/counts/trace /home/user/Projects/cx-wave14/build/wave14/counts/scopes/post-scripts-r7-db0/probe /home/user/Projects/cx-wave14/build/wave14/counts/scopes/post-scripts-r7-db0/lua.ranges 8ca480 8ca490 000000000002bb30 EVAL-cross 1s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope

@@ -1,2 +1,0 @@
-ok	4.410000	multidb (1s, read-local 1, atomic 1)
-ok	0.090000	multidb (1s, read-local 1, atomic 1) SWAPDB serial order

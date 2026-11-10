@@ -1,1 +1,0 @@
-DIFFER hll: 3045 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

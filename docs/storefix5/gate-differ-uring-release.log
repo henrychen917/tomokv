@@ -1,4 +1,0 @@
-GATE(iteration): 8 physical CPUs shared by one correctness server/client slot; 8 server threads at ratio 6:2; PARTIAL ONLY, rates/ABBA/NIC/receipt disabled
-  artifacts: /home/user/Projects/cx-storefix5/build/gate-run.IG4F27
-PARTIAL jobs (including prerequisites): release differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence
-PARTIAL jobs (including prerequisites): release differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence

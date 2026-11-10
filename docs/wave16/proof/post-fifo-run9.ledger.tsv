@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=txnorder_fifo_live; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-ok	988.680000	txnorder FIFO live fairness

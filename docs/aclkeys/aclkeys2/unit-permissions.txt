@@ -1,3 +1,0 @@
-permissions: 142 admission/denial assertions PASS
-retirement: 18 admitted/denied reply assertions PASS
-exit=0

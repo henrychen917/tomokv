@@ -1,1 +1,0 @@
-Discarded: started against mutable build/tomokv before the final link completed. Early boots used PRE; the late boot used the candidate. The missing matching scope refusal correctly failed. Repeated using frozen build/rlfix5/MONOTONIC after build completion and make -q all. No claims use this attempt.

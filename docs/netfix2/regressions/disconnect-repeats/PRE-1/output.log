@@ -1,2 +1,0 @@
-  row budget: 900s; median=4.9s; correctness-plan-fallback; clientcompat disconnect
-  clientcompat disconnect                              ok

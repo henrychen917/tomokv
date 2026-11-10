@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manual regression for FIXREDIS.md; requires a fresh DEBUG-enabled split server.
+"""Manual regression for `git show v1.0:FIXREDIS.md`; requires a fresh DEBUG-enabled split server.
 
 Geometry: eight server cores, --shards 16 --ratio 6:2 --atomic 1.
 The foreign-guard arm reproduces the old abandonment row's false positive; the

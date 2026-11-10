@@ -1,3 +1,0 @@
-{"phase": "steady", "writes": 384000, "reads": 182960, "torn": 0, "captures": 0, "capture_samples": 0, "capture_reads": 0, "errors": [], "rest_torn": 0}
-{"phase": "wide", "writes": 276848, "reads": 154480, "torn": 0, "captures": 0, "capture_samples": 0, "capture_reads": 0, "errors": [], "rest_torn": 0}
-{"phase": "capture-0", "writes": 263712, "reads": 140256, "torn": 0, "captures": 6, "capture_samples": 588, "capture_reads": 138016, "errors": [], "rest_torn": 0}

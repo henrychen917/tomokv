@@ -1,2 +1,0 @@
-21:08:24 diag-new run1 rc=1 43 ok 1 FAIL
-21:08:24 diag-new DONE

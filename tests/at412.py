@@ -374,7 +374,7 @@ def snapshot_batches(c, port, keys, call, oracle):
     Continuous unit traffic across repeated cuts hits the independently reproduced
     SNAP-STORM-1. T11a owns the live SAVE/hand-off overlap; this row checks exact
     script replies and persisted data across repeated, quiescent BGSAVEs.
-    The original storm remains in tools/archive/tests/at412_diagnostics.py, outside the gate.
+    The original storm remains in `git show v1.0:tools/archive/tests/at412_diagnostics.py`, outside the gate.
     """
     replies = []
     for _ in range(3):
@@ -991,7 +991,7 @@ def disconnect_shutdown(c, port, keys, call, command, oracle, mode):
     exact(c, keys, [1, 1])
     assert c.must('PING') == b'PONG'
     # Finish every accepted call before SHUTDOWN: XS-SHUT-1 is the independent
-    # in-flight teardown defect reproduced by tools/archive/tests/at412_diagnostics.py.
+    # in-flight teardown defect reproduced by `git show v1.0:`git show v1.0:tools/archive/tests/at412_diagnostics.py``.
     peers = [Conn('127.0.0.1', port, timeout=5) for _ in range(8)]
     try:
         for x in peers:

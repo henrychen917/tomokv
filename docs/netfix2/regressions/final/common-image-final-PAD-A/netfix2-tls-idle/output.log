@@ -1,2 +1,0 @@
-  row budget: 900s; median=34.03s; correctness-plan-fallback; netfix2 tls-idle
-  netfix2 tls-idle                                     FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.Vzxs1Y/jobs/netfix2-tls-idle/proof.log)

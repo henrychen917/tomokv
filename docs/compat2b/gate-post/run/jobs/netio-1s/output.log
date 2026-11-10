@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; epoll directed correctness (1s)
-  epoll directed correctness (1s)                      ok

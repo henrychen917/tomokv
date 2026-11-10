@@ -1,8 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 0)
-  exec1s refinements (1s, atomic 0)                    ok
-  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 1)
-  exec1s refinements (1s, atomic 1)                    ok
-  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 0)
-  exec1s refinements (2s, atomic 0)                    ok
-  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 1)
-  exec1s refinements (2s, atomic 1)                    ok

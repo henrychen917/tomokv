@@ -1,5 +1,0 @@
-ok	0.760000	authfix CG4.1 binary config requirepass
-ok	3.320000	authfix CG4.2 missing config value refuses boot
-ok	0.760000	authfix SV4.2 binary requirepass rewrite restart
-ok	0.150000	authfix SV4.1 slowlog credential redaction (1s)
-ok	0.140000	authfix SV4.1 slowlog credential redaction (2s)

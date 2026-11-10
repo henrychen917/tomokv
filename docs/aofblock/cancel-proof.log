@@ -1,1 +1,0 @@
-PASS aofblock blpop_now 2s epoll: [{'stage': 'held-kill-recover', 'early': False, 'reply': 'None', 'recovered': "[b'job']", 'owner': 7, 'writer': 5}, {'stage': 'release-ack-kill-recover', 'reply': "[b'persistfix:window:aofblock:blpop_now:0', b'job']", 'recovered': '[]'}]

@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=cfgfix2-acl; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-ok	10.380000	cfgfix2 acl (oracle, both modes and engines)

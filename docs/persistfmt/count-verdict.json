@@ -1,8 +1,0 @@
-{
-  "arm": "FINAL5",
-  "server_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
-  "command_cells": 80,
-  "snapshot_cells": 16,
-  "added_command_instructions": false,
-  "added_snapshot_instructions_per_key": false
-}

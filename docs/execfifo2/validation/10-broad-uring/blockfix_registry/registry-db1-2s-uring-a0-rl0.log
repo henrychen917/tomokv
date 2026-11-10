@@ -1,7 +1,0 @@
-ORACLE 7.4.10
-PASS wave7 blocked move registry, destination WATCH and encoding
-ORACLE [[[{"bytes": "710078"}, {"bytes": "61"}], [{"bytes": "710078"}, {"bytes": "62"}], [{"bytes": "710078"}, {"bytes": "63"}]], [[{"bytes": "71007a"}, {"bytes": "61"}, {"bytes": "31"}], [{"bytes": "71007a"}, {"bytes": "62"}, {"bytes": "32"}], [{"bytes": "71007a"}, {"bytes": "63"}, {"bytes": "33"}]], [[{"bytes": "74696d656f757473"}, {"bytes": "6669727374"}], [{"bytes": "74696d656f757473"}, {"bytes": "6c617374"}]], [{"bytes": "736572766564"}, {"bytes": "6c6973747061636b"}, null]]
-GEOMETRY {"thread_mode": "2s", "net_io": "uring", "atomic": "0", "read_local": "0", "shards": "16"}
-PASS wave7 blocked move registry, destination WATCH and encoding
-TARGET [[[{"bytes": "710078"}, {"bytes": "61"}], [{"bytes": "710078"}, {"bytes": "62"}], [{"bytes": "710078"}, {"bytes": "63"}]], [[{"bytes": "71007a"}, {"bytes": "61"}, {"bytes": "31"}], [{"bytes": "71007a"}, {"bytes": "62"}, {"bytes": "32"}], [{"bytes": "71007a"}, {"bytes": "63"}, {"bytes": "33"}]], [[{"bytes": "74696d656f757473"}, {"bytes": "6669727374"}], [{"bytes": "74696d656f757473"}, {"bytes": "6c617374"}]], [{"bytes": "736572766564"}, {"bytes": "6c6973747061636b"}, null]]
-PASS registry

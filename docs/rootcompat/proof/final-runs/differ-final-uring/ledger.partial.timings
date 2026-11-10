@@ -1,6 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	528.710000	Redis 7.4 differential part (split, atomic 0)
-ok	530.530000	Redis 7.4 differential part (split, atomic 1)
-ok	526.180000	Redis 7.4 differential part (armed fused, atomic 0)
-ok	537.790000	Redis 7.4 differential part (armed fused, atomic 1)
-ok	21.800000	mode equivalence part (all execution modes and knobs)

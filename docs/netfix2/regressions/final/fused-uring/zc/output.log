@@ -1,8 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; zc borrow battery
-  zc borrow battery                                    ok
-  row budget: 900s; median=-s; no-history-conservative-default; zc fired (zc_sends=N)
-  zc fired (zc_sends=20)                               ok
-  row budget: 900s; median=-s; no-history-conservative-default; zc borrow battery under ASAN
-  zc borrow battery under ASAN                         ok
-  row budget: 900s; median=-s; no-history-conservative-default; zc ASAN clean
-  zc ASAN clean                                        ok

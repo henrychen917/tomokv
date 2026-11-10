@@ -1,2 +1,0 @@
-1s sigterm: PASS (restart, save=True, snapshot=33666a97c3eeaaf4236557274604ddc5b70fa1b9d154dcfafceb09f662cd045a)
-1s sigterm-off: PASS (restart, save=False, snapshot=absent)

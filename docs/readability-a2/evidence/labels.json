@@ -1,7 +1,0 @@
-{
-  "declared": 1229,
-  "fixture_rows": 1229,
-  "nic": "separate optional ledger row; not exercised by this partial run",
-  "gate_sha256": "8bbe121238a580ce7c9f0254fda70c1fd634f9f9fb6d9758ab8ed47e32e517cf",
-  "fixture_sha256": "39cf389f23f0c2f1a281653ced9cdcf91f3048292d7877c378884d575f20b295"
-}

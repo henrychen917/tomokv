@@ -1,4 +1,0 @@
-tools/txnfix4_probes.py --probe exec-mpop-aof on the audited headline 105c5818cc
-(/home/user/Projects/bench-bins/tomokv-headline-105c5818cc): identical to PRE and POST.
-LMPOP 1 l LEFT and ZMPOP 1 z MIN inside MULTI/EXEC with appendonly yes: EXEC no reply in 3 s and a fresh
-connection's PING no reply in 3 s, in 2s and 1s, atomic 0 and 1; LPOP and BLMPOP controls reply and PONG.

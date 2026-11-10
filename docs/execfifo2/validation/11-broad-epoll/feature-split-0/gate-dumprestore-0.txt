@@ -1,3 +1,0 @@
-atomic boundary entry=0
-dumprestore: PASS (292 checks, mode=live; snapshot hooks/envelope/TTL fired)
-atomic boundary restored=0

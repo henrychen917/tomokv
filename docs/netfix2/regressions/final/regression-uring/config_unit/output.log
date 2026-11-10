@@ -1,8 +1,0 @@
-  row budget: 900s; median=0.4s; correctness-plan-fallback; configuration docs match parser
-  configuration docs match parser                      ok
-  row budget: 900s; median=5.35s; correctness-plan-fallback; Redis config quoting + mid-value #
-Could not create server TCP listening socket 127.0.0.2:16379: Address already in use
-Could not create server TCP listening socket 127.0.0.2:16379: Address already in use
-PASS documented config example: parser, defaults, 6:2 placement, 16 shards
-boot presentation: 256 resolved cells, eight placement witnesses each
-  Redis config quoting + mid-value #                   ok

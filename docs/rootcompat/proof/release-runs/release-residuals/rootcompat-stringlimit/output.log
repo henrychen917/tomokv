@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; correctness-plan-fallback; rootcompat stringlimit vs Redis 7.4
-  rootcompat stringlimit vs Redis 7.4                  FAIL (see /home/user/Projects/cx-rootcompat/build/gate-run.CioCco/jobs/rootcompat-stringlimit/rootcompat.log and proof)

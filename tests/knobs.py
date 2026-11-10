@@ -58,7 +58,7 @@ try:
                 raise AssertionError("query-buffer error grammar: " + repr(spelling))
             if conn.must("CONFIG", "GET", query_name) != before:
                 raise AssertionError("rejected query-buffer SET changed the limit")
-        # Exact Redis 7.4 oracle reply (docs/netfix/evidence/oracle-knobs-duplicate.log).
+        # Exact Redis 7.4 oracle reply (`git show v1.0:docs/netfix/evidence/oracle-knobs-duplicate.log`).
         if conn.cmd("CONFIG", "SET", query_name, "1mb", query_name, "2mb") != _lib.RespError(
                 prefix + "duplicate parameter"):
             raise AssertionError("duplicate query-buffer SET accepted")

@@ -1,4 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; armed block-cache churn battery
-  armed block-cache churn battery                      ok
-  row budget: 900s; median=-s; no-history-conservative-default; read-local ownership invariants
-  read-local ownership invariants                      ok

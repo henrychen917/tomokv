@@ -2846,7 +2846,7 @@
   ],
   "scriptfix2": {
     "promoted_assertions": 78,
-    "source": "docs/scriptfix2/tcl-promotions.json",
+    "source": "tests/fixtures/redis-tcl-promotions.json",
     "remaining_dependencies": "MEASURE-REQUEST-scriptfix2.md"
   },
   "infofix_promotions": [

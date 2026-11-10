@@ -1,3 +1,0 @@
-/home/user/Projects/cx-eoffix/build/eoffix/counts/trace /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/pre-receive-db0/probe /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/pre-receive-db0/lua.ranges 8c7780 8c7790 000000000002bb50 EPOLL 2s 32 0 0
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS finite open-peer receive

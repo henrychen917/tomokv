@@ -1,2 +1,0 @@
-Original PRE failures retained; topology and teardown fixture fixes committed.
-Python compilation, bash syntax and git diff checks passed before release.

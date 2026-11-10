@@ -1,3 +1,0 @@
-./build/l4prebuild-unit 1s read-local-0
-FAIL owner arena: owner completes fragment
-make: *** [Makefile:935: l4prebuild-unit] Error 1

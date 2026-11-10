@@ -1,6 +1,0 @@
-{
-  "tests/scriptatomic_strict.py": {
-    "sha256": "f84bd6520908ad07fa17bfb9a12fd7b6f31f1a42d91dc85c76fc972267947b37",
-    "resolution": "Generated TemporaryDirectory script: tests/scriptatomic.py is read, parsed and instrumented, written to fixture, then executed with PYTHONPATH=tests. No archived input."
-  }
-}

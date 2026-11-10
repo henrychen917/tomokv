@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 infofix exact latency batch witness
-  Redis 7.4 infofix exact latency batch witness        ok

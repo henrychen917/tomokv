@@ -1,3 +1,0 @@
-/home/user/Projects/cx-eoffix/build/eoffix/counts/trace /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-receive-release-normal/probe /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-receive-release-normal/lua.ranges 8cadf0 8cae00 000000000002bb50 EPOLL 1s 32 0 0
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS finite open-peer receive

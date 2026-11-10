@@ -1,2 +1,0 @@
-split exit=0 seconds=847
-armed-fused exit=0 seconds=837

@@ -1,5 +1,0 @@
-{"mode": "redis", "engine": "oracle", "result": {"rejected": 4, "positive_controls": 1}, "passed": true}
-{"mode": "1s", "engine": "uring", "result": {"rejected": 4, "positive_controls": 1}, "passed": true}
-{"mode": "1s", "engine": "epoll", "result": {"rejected": 4, "positive_controls": 1}, "passed": true}
-{"mode": "2s", "engine": "uring", "result": {"rejected": 4, "positive_controls": 1}, "passed": true}
-{"mode": "2s", "engine": "epoll", "result": {"rejected": 4, "positive_controls": 1}, "passed": true}

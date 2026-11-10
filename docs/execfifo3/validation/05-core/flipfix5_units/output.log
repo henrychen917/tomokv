@@ -1,4 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; FLIP stale stage sample refused (ASAN+TSAN)
-  FLIP stale stage sample refused (ASAN+TSAN)          ok
-  row budget: 900s; median=-s; no-history-conservative-default; FLIP stale stage planted pre-fix controls fail
-  FLIP stale stage planted pre-fix controls fail       ok

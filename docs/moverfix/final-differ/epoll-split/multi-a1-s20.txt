@@ -1,2 +1,0 @@
-  AT15: INFO sections, DEBUG SLEEP, controls and admin replies agree (RESP2)
-DIFFER multi: 4204 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

@@ -1,6 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=iowake-tls iowake-aof iowake-bgsave iowake-loadaof; NOT A RECEIPT
-ok	0.010000	release build (+footprint locks)
-FAIL	8.390000	iowake F5 TLS multi-unit output re-drive (kTLS, TLS 1.3, CBC memory BIO; 2s, 1s, 1s reorder; both engines)
-FAIL	6.800000	iowake F4 AOF writer re-wake during a large record (both modes, both engines)
-FAIL	7.050000	iowake F9 BGSAVE owner re-wake from its chunk channel (both modes, both engines)
-FAIL	10.180000	iowake F13 DEBUG LOADAOF on the AOF writer thread (both modes, both engines)

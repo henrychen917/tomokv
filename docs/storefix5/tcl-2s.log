@@ -1,3 +1,0 @@
-2s unit/keyspace: 37 pass 10 fail 12 skip rc=1 complete=True
-2s unit/maxmemory: 0 pass 0 fail 9 skip rc=0 complete=True
-2s unit/type/string: 80 pass 2 fail 0 skip rc=1 complete=True

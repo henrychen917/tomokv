@@ -1,2 +1,0 @@
-23:28:10 post-t6t9-b run1 rc=0 3 ok 0 FAIL
-23:28:10 post-t6t9-b DONE

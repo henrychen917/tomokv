@@ -1,8 +1,0 @@
-ARMED flipfix6 pins db1: WATCH repeat UNWATCH DISCARD EXEC success/nil/abort RESET/close
-ARMED flipfix6 pins db16: WATCH repeat UNWATCH DISCARD EXEC success/nil/abort RESET/close
-PASS core concurrency flipfix6-watch (state assertions fired)
-ARMED flipfix6 close db1: 1 owner inboxes refilled after ExDrain ack; pins retained
-ARMED flipfix6 close db16: 2 owner inboxes refilled after ExDrain ack; pins retained
-PASS core concurrency flipfix6-close-witness (state assertions fired)
-PASS watch_oom
-PASS watch_oom_db16

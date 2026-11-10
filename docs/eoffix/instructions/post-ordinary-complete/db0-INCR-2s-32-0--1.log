@@ -1,3 +1,0 @@
-/home/user/Projects/cx-eoffix/build/eoffix/counts/trace /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-ordinary-complete-db0/probe /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-ordinary-complete-db0/lua.ranges 8cd050 8cd060 000000000002bb30 INCR 2s 32 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope

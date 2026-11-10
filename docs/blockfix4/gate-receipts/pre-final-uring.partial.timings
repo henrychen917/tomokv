@@ -1,6 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	60.660000	blockfix4 scripts (all modes, read-local and atomic)
-FAIL	8.220000	blockfix4 moves (all modes, read-local and atomic)
-FAIL	121.700000	blockfix4 creators (all modes, read-local and atomic)
-FAIL	9.790000	blockfix4 removed (all modes, read-local and atomic)
-FAIL	17.480000	blockfix4 mpop (all modes, read-local and atomic)

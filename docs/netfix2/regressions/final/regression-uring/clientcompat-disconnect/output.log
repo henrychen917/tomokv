@@ -1,2 +1,0 @@
-  row budget: 900s; median=4.9s; correctness-plan-fallback; clientcompat disconnect
-  clientcompat disconnect                              FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.J82pCu/jobs/clientcompat-disconnect/clientcompat-disconnect.log)

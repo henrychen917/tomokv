@@ -14,7 +14,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = 'MEASURE-REQUEST-nullpublish3.md'
+REPORT = 'tests/fixtures/nullpublish-campaign.md'
 
 
 class RefreezeControls(unittest.TestCase):
@@ -54,6 +54,7 @@ class RefreezeControls(unittest.TestCase):
                 shutil.copy2(ROOT / row['path'], target)
             for name in ('tests/headline_cells.txt', 'tests/gate_measurements.json',
                          'tools/nullpublish_refreeze.py', REPORT):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / name, root / name)
             (root / '.gitignore').write_text('/build/\n__pycache__/\n')
             (root / 'src/identity').write_text('synthetic server one, never executed\n')

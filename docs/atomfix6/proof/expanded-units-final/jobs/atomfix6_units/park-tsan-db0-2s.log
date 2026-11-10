@@ -1,4 +1,0 @@
-park observed polls=64 scans=0 retained=256
-atomfix6 park mode=2s namespace=db0 read-local=0 tasks=256 passes=8 polls=64 scans=0
-park observed polls=64 scans=0 retained=256
-atomfix6 park mode=2s namespace=db0 read-local=1 tasks=256 passes=8 polls=64 scans=0

@@ -1,5 +1,0 @@
-{"mode": "redis", "engine": "oracle", "result": {"restart_cases": 4, "exact_registry_roundtrips": 4}, "passed": true}
-{"mode": "1s", "engine": "uring", "result": {"restart_cases": 4, "exact_registry_roundtrips": 4}, "passed": true}
-{"mode": "1s", "engine": "epoll", "result": {"restart_cases": 4, "exact_registry_roundtrips": 4}, "passed": true}
-{"mode": "2s", "engine": "uring", "result": {"restart_cases": 4, "exact_registry_roundtrips": 4}, "passed": true}
-{"mode": "2s", "engine": "epoll", "result": {"restart_cases": 4, "exact_registry_roundtrips": 4}, "passed": true}

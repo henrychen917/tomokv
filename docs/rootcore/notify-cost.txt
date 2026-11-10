@@ -1,6 +1,0 @@
-GCC -O2 -march=native, wrapper retired instructions including ENDBR64 and RET:
-PRE read-first: 13 (already set), 15 (clear).
-Fence + read-first: 14 / 16 (+1 locked instruction).
-POST unconditional publish: 8 / 8 (-5 / -7); one LOCK BTS in both cases.
-These are directed instruction counts, not a throughput or cache-coherence claim.
-The periodic task-depth repair remains under the hint-is-never-the-only-looker rule.

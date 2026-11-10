@@ -1,7 +1,0 @@
-{
-  "source_commit": "1babe0d58a942770ebb3aa76fd0fefe411c6fb9e",
-  "path": "/home/user/Projects/cx-wave15/build/wave15/POST-1babe0d58a-final",
-  "sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a",
-  "bytes": 104917984,
-  "freshness": "make -q all exit 0"
-}

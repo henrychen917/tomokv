@@ -1,7 +1,0 @@
-DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump cl
-DIFFER geometry: split (--ratio 6:2 --net-io epoll)
-DIFFER matrix: atomic={0 1} seeds={7 19 20 23 22 45} legs=564 logs=/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/differ-epoll
-DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2579562 recorded comparison witnesses, 568 legs)
-  not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
-DIFFER GATE: pass=569 fail=0 runtime=21m15s
-EXIT 0

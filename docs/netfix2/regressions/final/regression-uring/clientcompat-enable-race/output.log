@@ -1,2 +1,0 @@
-  row budget: 900s; median=78.29s; correctness-plan-fallback; clientcompat enable-race
-  clientcompat enable-race                             ok

@@ -1,2 +1,0 @@
-netio(epoll): base checks=37 failures=0; EOF extension next
-netio(epoll): 101 checks, 0 failures, epoll_events=402 epoll_recvs=202 worst_wake=0.1ms -> PASS

@@ -1,2 +1,0 @@
-INCR can modify objects in-place
-INCR uses shared objects in the 0-9999 range

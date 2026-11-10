@@ -1,9 +1,0 @@
-GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
-  artifacts: /home/user/Projects/cx-wave15/build/gate-run.EXOu9f
-PARTIAL jobs (including prerequisites): release txnorder_fifo_live
-PARTIAL jobs (including prerequisites): release txnorder_fifo_live
-  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
-  release build (+footprint locks)                     ok
-  row budget: 1440s; median=988.745s; fifo-16-legs-60s-plus-30s-setup-each; txnorder FIFO live fairness
-  txnorder FIFO live fairness                          ok
-GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave15/docs/wave15/jobs/fifo-final-03.partial

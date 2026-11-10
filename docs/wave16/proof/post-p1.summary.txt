@@ -1,2 +1,0 @@
-23:13:52 post-p1 run1 rc=1 925 ok 2 FAIL
-23:13:52 post-p1 DONE

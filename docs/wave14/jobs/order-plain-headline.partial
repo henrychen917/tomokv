@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=wave14_order; NOT A RECEIPT
-ok	0.010000	release build (+footprint locks)
-FAIL	3.030000	wave14 script EXEC wake publication order

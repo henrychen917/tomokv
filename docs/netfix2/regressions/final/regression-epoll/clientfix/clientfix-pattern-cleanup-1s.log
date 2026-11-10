@@ -1,4 +1,0 @@
-{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-n30ou0o1", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.09 15.34 12.75 17/3617 2142683", "pid": 2142683}
-{"case": "pattern-cleanup", "count": 1, "empty_count": 0, "empty_frames": [], "frames": [["pmessage", "keep:*", "keep:one", "after"]]}
-{"exit": 0, "lifecycle": "stop", "load": "19.09 15.34 12.75 14/3616 2142691", "pid": 2142683}
-{"axes": [[0, 0]], "case": "pattern-cleanup", "mode": "1s", "result": "PASS"}

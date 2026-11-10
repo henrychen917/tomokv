@@ -566,8 +566,8 @@ row_begin(){
     # bounded scheduler fixtures) and the wave-7 landing measured 442.80s
     # (cx-final build/gate-ledger-iteration.txt, 2026-10-26). Same rule, newest
     # landing: 442.80s x 1.4 = 619.92s, rounded up to a minute = 660s.
-    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md and
-    # MEASURE-REQUEST-harness5.md (harness5 before/after, landing-like geometry).
+    # Timing receipts and per-test breakdown: `git show v1.0:docs/wave4c/timing/README.md` and
+    # `git show v1.0:MEASURE-REQUEST-harness5.md` (harness5 before/after, landing-like geometry).
     ROW_TIMEOUT=660; ROW_BASIS=abba-selftest-wave7-landing-442.80s-plus-40pct-rounded
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
@@ -4333,7 +4333,7 @@ job_persistfmt(){
   fi
   for mode in 1s 2s; do for engine in epoll uring; do
     # Native AOF has always required a snapshot preamble. The unsupported no
-    # format is documented in MEASURE-REQUEST-persistfmt.md, not a passing row.
+    # format is documented in `git show v1.0:MEASURE-REQUEST-persistfmt.md`, not a passing row.
     for case in stream-roundtrip stream-interchange stream-options wire-values save bgsave shutdown reload aof-yes aof-failure; do
       label="persistfmt $case ($mode, $engine)"
       row_begin "$label"
@@ -4841,11 +4841,11 @@ job_wave15_rebind(){
 job_wave15_survey_harness(){
   local label='wave15 survey harness selftests (native and six Python entry points)' passed=1 script
   row_begin "$label"
-  taskset -c "$CORES" g++ -std=c++20 -O2 -pthread calib/survey-client.cc -o "$TMPDIR/survey-client" \
+  taskset -c "$CORES" g++ -std=c++20 -O2 -pthread tests/survey/survey-client.cc -o "$TMPDIR/survey-client" \
       >"$TMPDIR/build.log" 2>&1 && taskset -c "$CORES" "$TMPDIR/survey-client" --selftest \
       >"$TMPDIR/native.log" 2>&1 || passed=0
   for script in survey survey-cmds survey-latency survey-memory survey-persist survey-scale; do
-    py "calib/$script.py" --selftest >"$TMPDIR/$script.log" 2>&1 || passed=0
+    py "tests/survey/$script.py" --selftest >"$TMPDIR/$script.log" 2>&1 || passed=0
   done
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/*.log"
 }
@@ -7671,7 +7671,7 @@ for IOWAKE_CASE in tls aof bgsave loadaof; do collect_job "iowake-$IOWAKE_CASE";
 # The eight fused + flip-auto=1 cells must refuse the exact documented unsupported combination;
 # all other cells must boot and fire their mechanisms. These existing refusal checks remain
 # mandatory: accepting the combination or refusing for another reason is a failure. The Python
-# inventory assertion refuses a missing value/product entry. See GATES.md.
+# inventory assertion refuses a missing value/product entry. See docs/gates.md.
 for FM in 1s 2s; do
   for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
     FEATURE_CELL=$FM-$FR-$FC-$FQ-$FF

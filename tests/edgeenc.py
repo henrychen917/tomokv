@@ -203,7 +203,7 @@ for name, knob, small, big, add, count in TYPES:
               [b"e%05d" % i for i in range(maxent + 1)])
 
     # Redis keeps hash/set/zset encodings; lists demote at half the live limit.
-    # CD4.5 oracle boundary receipts: docs/datafix1/oracle-lists/.
+    # CD4.5 oracle boundary receipts: `git show v1.0:docs/datafix1/oracle-lists/`.
     for i in range(maxent):
         if name == "hash":
             c.cmd("HDEL", k, "f%05d" % i)
@@ -289,7 +289,7 @@ for n, expect in ((0, b"embstr"), (1, b"embstr"), (EMBED - 1, b"embstr"), (EMBED
 
 # Redis's dbUnshareStringValue materialises raw storage before APPEND and
 # non-empty SETRANGE, including results below the initial SET embed threshold.
-# Exact changed replies: docs/datafix2/edgeenc-oracle.jsonl.
+# Exact changed replies: `git show v1.0:docs/datafix2/edgeenc-oracle.jsonl`.
 for start in (EMBED - 2, EMBED - 1, EMBED):
     grown_len = start + 2
     expect = b"raw"

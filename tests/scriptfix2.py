@@ -246,7 +246,7 @@ def main():
     p.add_argument('--reproduce', action='store_true')
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    original = json.loads((ROOT / 'docs/harness5/redis-tcl-repros.json').read_text())['cases']
+    original = json.loads((ROOT / 'tests/fixtures/redis-tcl-repros.json').read_text())['cases']
     report = dict(mode=args.mode, net_io=args.net_io, databases=args.databases, atomic=args.atomic,
                   binary_sha256=hashlib.sha256(args.binary.read_bytes()).hexdigest(),
                   oracle_sha256=hashlib.sha256(args.oracle.read_bytes()).hexdigest(), rows=[])

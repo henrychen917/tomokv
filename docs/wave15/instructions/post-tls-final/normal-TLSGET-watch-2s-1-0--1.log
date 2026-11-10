@@ -1,3 +1,0 @@
-/home/user/Projects/cx-wave15/build/wave15/counts/trace /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-tls-final-normal/probe /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-tls-final-normal/lua.ranges 8fc240 8fc250 000000000002cc30 TLSGET-watch 2s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope

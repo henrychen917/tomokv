@@ -1,5 +1,0 @@
-redis uring plain: 10 x ECHO 10000 B -> net_input +100240 net_output +100106 (plaintext request bytes 100240, reply bytes 100100)
-tomo uring plain: 10 x ECHO 10000 B -> net_input +100240 net_output +100109 (plaintext request bytes 100240, reply bytes 100100)
-tomo epoll plain: 10 x ECHO 10000 B -> net_input +100240 net_output +100110 (plaintext request bytes 100240, reply bytes 100100)
-tomo uring TLS1.2: 10 x ECHO 10000 B -> net_input +100240 net_output +100109 (plaintext request bytes 100240, reply bytes 100100)
-tomo uring TLS1.3: 10 x ECHO 10000 B -> net_input +100240 net_output +100110 (plaintext request bytes 100240, reply bytes 100100)

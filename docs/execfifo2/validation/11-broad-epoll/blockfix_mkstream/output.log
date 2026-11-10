@@ -1,2 +1,0 @@
-  row budget: 900s; median=47.45s; correctness-plan-fallback; blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
-  blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4  ok

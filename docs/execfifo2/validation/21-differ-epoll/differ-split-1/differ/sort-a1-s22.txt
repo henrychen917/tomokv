@@ -1,3 +1,0 @@
-  sort geometry BY source=so:l3[2] pattern=so:w_* element=23 derived=so:w_23[5]
-  sort geometry GET source=so:l3[2] pattern=so:d_* element=14 derived=so:d_14[9]
-DIFFER sort: 4632 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

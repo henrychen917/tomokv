@@ -1,7 +1,0 @@
-string
-hash
-list
-set
-zset
-stream
-multi

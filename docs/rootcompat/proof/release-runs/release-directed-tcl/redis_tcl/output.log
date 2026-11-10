@@ -1,4 +1,0 @@
-  row budget: 900s; median=225.64s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (2s)
-  Redis 7.4.10 Tcl passing subset (2s)                 FAIL
-  row budget: 900s; median=228.5s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (1s)
-  Redis 7.4.10 Tcl passing subset (1s)                 ok

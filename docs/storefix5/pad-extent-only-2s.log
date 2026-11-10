@@ -1,9 +1,0 @@
-{"expired_reaped_by_one_call": 400, "chi2": 28.08203125, "df": 31, "samples": 16384, "counts": {"uniform:0": 499, "uniform:1": 513, "uniform:2": 508, "uniform:3": 548, "uniform:4": 466, "uniform:5": 522, "uniform:6": 502, "uniform:7": 505, "uniform:8": 497, "uniform:9": 532, "uniform:10": 458, "uniform:11": 541, "uniform:12": 507, "uniform:13": 523, "uniform:14": 505, "uniform:15": 507, "uniform:16": 500, "uniform:17": 502, "uniform:18": 501, "uniform:19": 508, "uniform:20": 540, "uniform:21": 512, "uniform:22": 533, "uniform:23": 495, "uniform:24": 499, "uniform:25": 481, "uniform:26": 537, "uniform:27": 516, "uniform:28": 526, "uniform:29": 531, "uniform:30": 517, "uniform:31": 553}}
-{"before": 1720000, "armed": 1720000, "queries": [1720000, 1720000, 1720000, 1720000, 1720000]}
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-storefix5/tools/storefix5_checks.py", line 82, in <module>
-    run(p.parse_args())
-  File "/home/user/Projects/cx-storefix5/tools/storefix5_checks.py", line 66, in run
-    assert all(row['passed'] for row in result['cases'].values()), result['cases']
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'randomkey': {'passed': False, 'error': 'RANDOMKEY still visits every elapsed key on every shard'}, 'idle': {'passed': False, 'error': 'idle clock missing from used_memory'}}

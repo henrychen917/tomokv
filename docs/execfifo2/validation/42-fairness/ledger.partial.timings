@@ -1,3 +1,0 @@
-ok	0.040000	release build (+footprint locks)
-ok	83.640000	EXEC fast-lane polls
-ok	988.790000	txnorder FIFO live fairness

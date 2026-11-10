@@ -3,7 +3,7 @@
 
 PRE probes must admit key movement before a key-skew matrix can run. Key episodes
 require a stationary key suffix; client episodes score spread improvement.
-See MEASURE-REQUEST-bench5.md for the comparison and read-only --replay rules.
+See `git show v1.0:MEASURE-REQUEST-bench5.md` for the comparison and read-only --replay rules.
 """
 import argparse
 from collections import Counter

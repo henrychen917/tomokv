@@ -60,7 +60,7 @@ class AssertionChecks(unittest.TestCase):
 
     def test_c_helper_pins(self):
         sites = {s.id: s for s in amap.scan(ROOT)}
-        pins = json.loads((ROOT / 'docs/wave8/helper-assert-pins.json').read_text())
+        pins = json.loads((ROOT / 'tests/fixtures/lua-helper-assert-pins.json').read_text())
         self.assertEqual(len(pins), 7)
         for pin in pins:
             value = int(pin['id'].removesuffix('u'), 16)

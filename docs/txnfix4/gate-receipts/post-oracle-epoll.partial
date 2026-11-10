@@ -1,9 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=redis_tcl differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence ; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-ok	223.920000	Redis 7.4.10 Tcl passing subset (2s)
-ok	231.390000	Redis 7.4.10 Tcl passing subset (1s)
-ok	528.180000	Redis 7.4 differential part (split, atomic 0)
-ok	527.430000	Redis 7.4 differential part (split, atomic 1)
-ok	525.420000	Redis 7.4 differential part (armed fused, atomic 0)
-ok	526.040000	Redis 7.4 differential part (armed fused, atomic 1)
-ok	21.550000	mode equivalence part (all execution modes and knobs)

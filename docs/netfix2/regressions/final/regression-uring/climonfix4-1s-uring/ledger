@@ -1,7 +1,0 @@
-ok	11.880000	climonfix4 PAUSE-BLOCKED-COUNT (1s uring)
-ok	12.270000	climonfix4 PAUSE-MAY-REPLICATE (1s uring)
-ok	11.350000	climonfix4 PAUSE-SCRIPT-FLAGS (1s uring)
-ok	13.400000	climonfix4 MONITOR-SCRIPT-CMDS (1s uring)
-ok	11.320000	climonfix4 RESET-CLEARS-LIBNAME (1s uring)
-ok	11.340000	climonfix4 RESET-MONITOR-ECHO (1s uring)
-ok	11.350000	climonfix4 CLIENT-LIST-CMD-NAME (1s uring)

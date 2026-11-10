@@ -1,2 +1,0 @@
-  row budget: 900s; median=26.335s; correctness-plan-fallback; atomfix6 MSET pairs/capture/restart (2s, read-local 1, databases 16)
-  atomfix6 MSET pairs/capture/restart (2s, read-local 1, databases 16) ok

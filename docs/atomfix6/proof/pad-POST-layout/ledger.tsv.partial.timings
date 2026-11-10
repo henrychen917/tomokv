@@ -1,3 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	25.410000	atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 1)
-ok	25.510000	atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16)

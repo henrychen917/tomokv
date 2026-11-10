@@ -1,2 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	555.000000	tracking FLUSH reply order vs Redis 7.4

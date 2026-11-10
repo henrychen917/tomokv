@@ -1,7 +1,0 @@
-taskset -c 110 env LC_ALL=C GATE_TEST_PORT=26390 python3 tests/gates_test.py PersistfixWiring.test_driver_reuses_stopped_port_but_refuses_live_listener
-
-.
-----------------------------------------------------------------------
-Ran 1 test in 0.048s
-
-OK

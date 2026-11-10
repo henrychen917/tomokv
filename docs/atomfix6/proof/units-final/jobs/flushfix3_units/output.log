@@ -1,4 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; flushfix3-unit linear collapse, collisions, OOM and saturated ranges
-  flushfix3-unit linear collapse, collisions, OOM and saturated ranges ok
-  row budget: 900s; median=-s; no-history-conservative-default; flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges
-  flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges ok

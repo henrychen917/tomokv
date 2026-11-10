@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; wave14 script EXEC wake publication order
-  wave14 script EXEC wake publication order            FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.gMqgzY/jobs/wave14_order/proof.log)

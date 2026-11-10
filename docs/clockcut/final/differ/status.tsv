@@ -1,4 +1,0 @@
-uring	split	0	1078s
-uring	armed-fused	0	1046s
-epoll	split	0	1079s
-epoll	armed-fused	0	1046s

@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=rootcompat-redact; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	1.230000	rootcompat redact vs Redis 7.4

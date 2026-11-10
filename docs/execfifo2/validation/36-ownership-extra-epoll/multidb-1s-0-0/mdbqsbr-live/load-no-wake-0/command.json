@@ -1,1 +1,0 @@
-["taskset", "-c", "0-7", "/home/user/Projects/cx-execfifo2/build/mdbqsbr2-no-wake/tomokv", "--bind", "127.0.0.1", "--port", "20100", "--thread-mode", "1s", "--shards", "16", "--databases", "16", "--read-local", "0", "--atomic", "0", "--enable-debug-command", "yes", "--save", "", "--protected-mode", "no"]

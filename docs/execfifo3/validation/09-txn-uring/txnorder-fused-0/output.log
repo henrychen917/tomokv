@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (fused, atomic 0)
-  txnorder battery (fused, atomic 0)                   ok

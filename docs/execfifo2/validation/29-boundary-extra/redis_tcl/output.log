@@ -1,4 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4.10 Tcl passing subset (2s)
-  Redis 7.4.10 Tcl passing subset (2s)                 ok
-  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4.10 Tcl passing subset (1s)
-  Redis 7.4.10 Tcl passing subset (1s)                 ok

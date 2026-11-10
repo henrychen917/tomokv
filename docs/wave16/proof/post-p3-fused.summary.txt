@@ -1,2 +1,0 @@
-22:20:25 post-p3-fused run1 rc=0 195 ok 0 FAIL
-22:20:25 post-p3-fused DONE

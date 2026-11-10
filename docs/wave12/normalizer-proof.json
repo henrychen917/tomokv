@@ -1,6 +1,0 @@
-{
-  "binary_sha256": "72639fc8e9cdc538209e60b6e134eedd00a3e81bb90641036086ebf501c51fd8",
-  "groups": 10237,
-  "identical": true,
-  "note": "Exact group/size/address/digest equality against the original wave11 normalizer, no instruction masks changed"
-}

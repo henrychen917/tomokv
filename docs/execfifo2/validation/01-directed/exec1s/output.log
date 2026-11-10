@@ -1,8 +1,0 @@
-  row budget: 900s; median=3.21s; correctness-plan-fallback; exec1s refinements (1s, atomic 0)
-  exec1s refinements (1s, atomic 0)                    ok
-  row budget: 900s; median=19.9s; correctness-plan-fallback; exec1s refinements (1s, atomic 1)
-  exec1s refinements (1s, atomic 1)                    ok
-  row budget: 900s; median=19.91s; correctness-plan-fallback; exec1s refinements (2s, atomic 0)
-  exec1s refinements (2s, atomic 0)                    ok
-  row budget: 900s; median=3.06s; correctness-plan-fallback; exec1s refinements (2s, atomic 1)
-  exec1s refinements (2s, atomic 1)                    ok

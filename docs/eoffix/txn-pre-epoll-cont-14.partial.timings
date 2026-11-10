@@ -1,3 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-FAIL	93.540000	server shutdown
-FAIL	0	txnorder battery (fused, atomic 0)

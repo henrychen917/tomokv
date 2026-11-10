@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; datafix2 CD4.7 no-touch lookups vs Redis 7.4
-  datafix2 CD4.7 no-touch lookups vs Redis 7.4         ok

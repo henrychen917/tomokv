@@ -1,2 +1,0 @@
-stallfix move_ms=2.874 hook_calls=1 script_reply=:1 moves=1 timeouts=0
-PASS core concurrency stallfix (state assertions fired)

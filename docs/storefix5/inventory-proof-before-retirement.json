@@ -1,5 +1,0 @@
-{
-  "waiting_for": "serial-proof.json",
-  "stages": [],
-  "disposition": "Stopped before any job when the retirement fix superseded the preceding arm; final inventory queue replaces this."
-}

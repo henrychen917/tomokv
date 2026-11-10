@@ -1,2 +1,0 @@
-  row budget: 900s; median=1.12s; correctness-plan-fallback; netfix NT4.11 Unix pathname parity
-  netfix NT4.11 Unix pathname parity                   FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.J82pCu/jobs/netfix_unix/proof.log)

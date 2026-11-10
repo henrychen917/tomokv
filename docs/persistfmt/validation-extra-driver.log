@@ -1,8 +1,0 @@
-START extra-uring
-DONE extra-uring 1
-START extra-epoll
-DONE extra-epoll 0
-START extra-fused-uring
-DONE extra-fused-uring 0
-START extra-fused-epoll
-DONE extra-fused-epoll 0

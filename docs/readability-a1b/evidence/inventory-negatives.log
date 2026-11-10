@@ -1,3 +1,0 @@
-PASS rejected removed caller edge: tests/cd13b_window_test.py
-PASS rejected removed caller edge: tests/slowlog_identity.py
-PASS rejected removed caller edge: tools/ccfix_audit.py

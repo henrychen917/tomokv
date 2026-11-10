@@ -1,5 +1,0 @@
-file=build/gate-run.YtFHZQ/jobs/aof-epoll/gate-aof-epoll-atomic0.YujRfY/appendonlydir/appendonly.aof.1.incr.tomo bytes=14329778 frames=1112
-#1102  @14328447   CTRL    seq=0      flags=--   len=52      GCMT ticket=3 names=(sid2,seq42)
-#1103  @14328539   CTRL    seq=0      flags=--   len=344     FUNCTION len=304
-#1104  @14328923   sid15   seq=42     flags=--   len=67      GPUT key=aof:script:fcall len=11 ticket=4
-frames=1112 large_records=88 control_frames=7 interleaved_control=0 other_violations=0

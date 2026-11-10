@@ -1,8 +1,0 @@
-{
-  "tag": "fifo-lane-four-client-cpus",
-  "status": "NOT RUN",
-  "reason": "The first control requested only 12 distinct physical CPUs; the unchanged gate requires at least 16 and booted nothing.",
-  "log_sha256": "9fe2228b743af2d2bb367e0c3ab201a2d91b8605122319d7aaf2297d12a7c504",
-  "replacement": "fifo-lane-four-client-cpus-valid",
-  "allocation": "16 assigned physical cores, one active slot at server16-23/load0-3. Selected jobs do not run ABBA."
-}

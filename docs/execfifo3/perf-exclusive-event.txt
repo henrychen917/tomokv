@@ -1,6 +1,0 @@
-
-cache:
-  l2_request_g1.change_to_x
-       [L2 cache requests: data cache state change to writable,check L2 for
-        current state. Unit: cpu]
-        cpu/event=0x60,umask=8/

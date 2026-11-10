@@ -1,5 +1,0 @@
-ORACLE 7.4.10
-ORACLE {"bytes": [true, true], "default": 250, "entries": [true, true], "off": 250, "progress": [2, 1]}
-GEOMETRY {"thread_mode": "2s", "net_io": "epoll", "atomic": "0", "read_local": "0", "shards": "16"}
-TARGET {"bytes": [true, true], "default": 250, "entries": [true, true], "off": 250, "progress": [2, 1]}
-PASS mkstream

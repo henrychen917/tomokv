@@ -205,7 +205,7 @@ expect(admin.command("ACL", "SETUSER", "bad-selector", "(on +get)"),
        "invalid selector rejected")
 expect(admin.command("ACL", "GETUSER", "bad-selector"), None,
        "rejected selector creates no user")
-# Redis 7.4 oracle: docs/dispatchfix/acl-firstarg-oracle-replies.json.
+# Redis 7.4 oracle: `git show v1.0:docs/dispatchfix/acl-firstarg-oracle-replies.json`.
 expect(admin.command("ACL", "SETUSER", "bad-firstarg", "+select|0"),
        b"OK", "first-argument grant accepted")
 expect(fields(admin.command("ACL", "GETUSER", "bad-firstarg"))[b"commands"],
@@ -216,7 +216,7 @@ expect(admin.command("ACL", "DELUSER", "bad-firstarg"), 1,
 alice = Conn()
 expect(alice.command("AUTH", "alice", password), b"OK", "multi-user AUTH")
 # Redis names a denied subcommand by its full name (acl.c:2739-2740 prints cmd->fullname);
-# Redis 7.4.10 oracle replies: docs/wave4/oracle/acl-redis74.json.
+# Redis 7.4.10 oracle replies: `git show v1.0:docs/wave4/oracle/acl-redis74.json`.
 expect(alice.command("ACL", "WHOAMI"),
        "NOPERM User alice has no permissions to run the 'acl|whoami' command", "ACL command bit")
 expect(alice.command("AUTH", "default", "anything"), b"OK", "AUTH identity switch")

@@ -1,2 +1,0 @@
-usage: run_gate.py [-h] [--jobs JOBS] [--label LABEL] {pre,post}
-run_gate.py: error: argument --label: expected one argument

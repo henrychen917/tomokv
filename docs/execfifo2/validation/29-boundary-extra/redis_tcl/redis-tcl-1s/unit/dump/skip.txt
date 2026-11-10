@@ -1,6 +1,0 @@
-MIGRATE cached connections are released after some time
-RESTORE can set LFU
-RESTORE can set LRU
-RESTORE fail with invalid payload size
-RESTORE should not store key that are already expired, with REPLACE will propagate it as DEL or UNLINK
-RESTORE with ABSTTL in the past

@@ -1,4 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=cfgfix2-auth cfgfix2-shutdown; NOT A RECEIPT
-ok	0.010000	release build (+footprint locks)
-FAIL	32.610000	cfgfix2 auth (oracle, both modes and engines)
-FAIL	454.430000	cfgfix2 shutdown (oracle, both modes and engines)

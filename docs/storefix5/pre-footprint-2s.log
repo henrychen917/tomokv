@@ -1,8 +1,0 @@
-{"keys": 1000000, "single_call_ms": [360.398703, 441.489648, 562.884484, 467.897606, 475.042644], "before": {"used_memory": 44000000, "used_memory_rss": 75792384, "used_memory_peak": 44000000}, "single": {"used_memory": 44000000, "used_memory_rss": 134209536, "used_memory_peak": 44000000}, "after_four_clients_16_calls": {"used_memory": 44000000, "used_memory_rss": 182882304, "used_memory_peak": 44000000}}
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-storefix5/tools/storefix5_checks.py", line 75, in <module>
-    run(p.parse_args())
-  File "/home/user/Projects/cx-storefix5/tools/storefix5_checks.py", line 62, in run
-    assert all(row['passed'] for row in result['cases'].values()), result['cases']
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'randomkey_footprint': {'passed': False, 'error': "{'keys': 1000000, 'single_call_ms': [360.398703, 441.489648, 562.884484, 467.897606, 475.042644], 'before': {'used_memory': 44000000, 'used_memory_rss': 75792384, 'used_memory_peak': 44000000}, 'single': {'used_memory': 44000000, 'used_memory_rss': 134209536, 'used_memory_peak': 44000000}, 'after_four_clients_16_calls': {'used_memory': 44000000, 'used_memory_rss': 182882304, 'used_memory_peak': 44000000}}"}}

@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=serverfix_lines; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-FAIL	7.320000	serverfix CG4.3 physical config lines

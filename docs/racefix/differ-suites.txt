@@ -1,5 +1,0 @@
-climon
-monitor
-infofix
-servertail
-compatintro

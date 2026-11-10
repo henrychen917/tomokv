@@ -1,1 +1,0 @@
-DIFFER compatintro: 5633 checks, 0 diffs -> PASS (getkeys=1550, config_multi=637, client_rows=240, acl_mutations=396, notify_events=15, silence_controls=5)

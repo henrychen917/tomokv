@@ -1,4 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; wave14 epoll coalesced EOF (normal)
-  wave14 epoll coalesced EOF (normal)                  FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.EBWhiN/jobs/wave14_epoll_eof/normal.log)
-  row budget: 900s; median=-s; no-history-conservative-default; wave14 epoll coalesced EOF (db0)
-  wave14 epoll coalesced EOF (db0)                     FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.EBWhiN/jobs/wave14_epoll_eof/db0.log)

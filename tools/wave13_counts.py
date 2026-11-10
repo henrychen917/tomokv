@@ -9,7 +9,7 @@ import argparse, bisect, concurrent.futures, gzip, hashlib, json, os, re, shlex,
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 BUILD=ROOT/'build/wave13/counts'
-DOC=ROOT/'docs/wave13/instructions'
+DOC=ROOT/'build/wave13/instructions'
 def sha(path):
     with Path(path).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 def save(path,value):

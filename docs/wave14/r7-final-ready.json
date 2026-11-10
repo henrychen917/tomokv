@@ -1,8 +1,0 @@
-{
-  "binary": "build/wave14/post-r7/tomokv",
-  "sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
-  "production_commit": "a0e4d122e8",
-  "source_diff_from_that_commit": false,
-  "scope_binding_sha256": "e1e8e905155f3c5dbb639f0b6e11af145acd102e5363b675400049c70bf43b2f",
-  "negative_witness_sha256": "31015362b6ebf01d65a20dfab1b4d5f57edf479ae9cd9830a460b044fe10297f"
-}

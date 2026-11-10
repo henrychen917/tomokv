@@ -1,2 +1,0 @@
-  row budget: 900s; median=482.07s; correctness-plan-fallback; rootcompat tracking vs Redis 7.4
-  rootcompat tracking vs Redis 7.4                     ok

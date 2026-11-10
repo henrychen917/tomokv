@@ -1,41 +1,53 @@
-build/
+# Build products and local gate state
+/build/
 *.o
 compile_commands.json
 servertail-testdata/
-
-# compiled test/bench drivers (sources are tracked, binaries are not)
+__pycache__/
+.gate-history/
+gate-iteration-*.log
 tools/benchtxn
 
-# stray comparison-run snapshot artifacts (dragonfly writes these into cwd)
+# Runtime snapshots
 dump-*.dfs
 dump-*.rdb
 dump-*.tomo
 dump.tomo
 
-# python bytecode from the in-tree test helpers (tests/aof_frame_order.py imports aof_frames)
-__pycache__/
-
-# agent lane artifacts -- never commit these
+# Private development material belongs outside the public tree.
+MEASURE-REQUEST*
+MEASURE-RESULT*
+EVIDENCE*
+CODEX-OUT*.md
 codex*.log
 BRIEF*.md
 LANE_RULES.md
-# The interactive agent transcript changes during validation and is not project source.
-/CODEX-OUT*.md
-/MEASURE-REQUEST
-/MEASURE-RESULT
-
-# replycode lane: measurement drivers are tracked as sources, their binaries are not
-scratchpad/replycode/replay
-scratchpad/replycode/layout
-scratchpad/replycode/*.so
-
-# Exact gate timing and seed history survive make clean.
-.gate-history/
-
-# lane transcripts and gate logs never belong in the tree
-gate-iteration-*.log
-CODEX-OUT*.md
-MEASURE-REQUEST*
-MEASURE-RESULT*
+LBSTALL*.md
 LINE-SHARING-AUDIT.md
+FIXREDIS.md
+STACK3.md
+MERGE-PRESERVE.md
+KNOB-REVIEW.patch
+production.diff
 OLD-DELVAR-HINTS.txt
+/scratch/
+/scratchpad/
+/calib/
+/tools/archive/
+/tests/gateprod-evidence/
+
+# Documentation subdirectories are explicit; lane outputs belong under build/.
+/docs/*/
+!/docs/architecture/
+/docs/*.json
+/docs/*.jsonl
+/docs/*.log
+/docs/*.tsv
+/docs/*.gz
+/docs/*.patch
+
+# Compatibility links for the unchanged publication instrument.
+!/docs/lbplanner/
+/docs/lbplanner/*
+!/docs/lbplanner/generic-cells.txt
+!/docs/lbplanner/multidb-cells.txt

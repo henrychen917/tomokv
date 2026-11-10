@@ -1,1 +1,0 @@
-["taskset", "-c", "16-23", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "20021", "--dir", "/home/user/Projects/cx-wave15/docs/wave15/aof-participants-pre-probe/redis-1s-uring-a0-d16-nosync", "--save", "", "--enable-debug-command", "yes", "--appendonly", "yes", "--appendfsync", "no", "--auto-aof-rewrite-percentage", "0"]

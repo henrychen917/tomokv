@@ -1,2 +1,0 @@
-MISMATCH ACL command bit: got "NOPERM User alice has no permissions to run the 'acl|whoami' command", wanted "NOPERM User alice has no permissions to run the 'acl' command"
-acl: PASS (grammar, AUTH, enforcement/closure, revocation, ACL LOG, SAVE/LOAD)

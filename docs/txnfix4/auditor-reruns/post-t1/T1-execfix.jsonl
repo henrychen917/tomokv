@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-txnfix4/build/txnfix4/auditor/live_audit.py", line 159, in <module>
-    result=globals()[a.test]();save(OUT/(a.test+'.json'),{'test':a.test,'seconds':time.monotonic()-start,'result':result});print(a.test,'PASS',round(time.monotonic()-start,3))
-           ^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-txnfix4/build/txnfix4/auditor/live_audit.py", line 109, in T1
-    raise AssertionError('no same-owner LCS witness in 16 fresh boots')
-AssertionError: no same-owner LCS witness in 16 fresh boots

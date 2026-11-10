@@ -1,2 +1,0 @@
-PASS atomic collapse: all (both arms; mode/database variants exercised)
-PASS admission

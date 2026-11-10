@@ -86,7 +86,7 @@ def main():
     p.add_argument("--root", action="append", choices=ROOTS)
     args = p.parse_args()
     args.binary = args.binary.resolve(); args.output = args.output.resolve()
-    source = json.loads((ROOT / "docs/harness5/redis-tcl-repro-cases.json").read_text())
+    source = json.loads((ROOT / "tests/fixtures/redis-tcl-repro-cases.json").read_text())
     results = {}
     for root in args.root or ROOTS:
         name = next(k for k in source if k.endswith(root))

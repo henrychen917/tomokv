@@ -1,4 +1,0 @@
-infofix
-psfix
-climon
-monitor

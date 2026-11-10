@@ -72,7 +72,7 @@ def command_stats(admin, name):
 
 
 def sort_case(admin, port, _args):
-    # Every expectation below is Redis 7.4.10's reply (docs/aclfix/oracle/sort). sort.c parses
+    # Every expectation below is Redis 7.4.10's reply (`git show v1.0:docs/aclfix/oracle/sort`). sort.c parses
     # options left to right and answers its first error; a user without unrestricted key access
     # may not reach GET or a '*' BY pattern. Declared keys (the source, SORT's last STORE target)
     # are checked first, by the ordinary ACL check, and answer NOPERM.

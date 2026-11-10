@@ -1,2 +1,0 @@
-  row budget: 900s; median=1.66s; correctness-plan-fallback; rootcompat errorstats vs Redis 7.4
-  rootcompat errorstats vs Redis 7.4                   FAIL (see /home/user/Projects/cx-rootcompat/build/gate-run.CioCco/jobs/rootcompat-errorstats/rootcompat.log and proof)

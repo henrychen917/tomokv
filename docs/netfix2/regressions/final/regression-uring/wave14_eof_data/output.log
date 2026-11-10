@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; wave14 half-close accepted input
-  wave14 half-close accepted input                     FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.J82pCu/jobs/wave14_eof_data/half-close.log)

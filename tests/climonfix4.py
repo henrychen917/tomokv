@@ -340,7 +340,7 @@ def main():
     args.binary = args.binary.resolve()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
-    source = json.loads((ROOT / "docs/harness5/redis-tcl-repros.json").read_text())["cases"]
+    source = json.loads((ROOT / "tests/fixtures/redis-tcl-repros.json").read_text())["cases"]
     results = {}
     for root in args.root or ROOTS:
         results[root] = {}

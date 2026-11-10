@@ -1,8 +1,0 @@
-{
-  "rejected_command": "GATE_ONLY_JOBS=core_tsan_build tests/gate.sh iteration ...",
-  "exit": 2,
-  "reason": "Build-only prerequisite: gate requires selecting its consuming correctness job.",
-  "replacement": "GATE_ONLY_JOBS=core_units",
-  "replacement_receipt": "docs/clientcompat/validation/final-core-units.json",
-  "replacement_complete": true
-}

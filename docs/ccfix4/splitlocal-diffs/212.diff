@@ -1,2 +1,0 @@
-Function: unsigned int tomo::IoLoop::wb_retire_prepare<true, false, false>(tomo::IoLoop::WbBatch&)
-Occurrence: 0

@@ -1,8 +1,0 @@
-{
-  "failure": "mode equivalence rejected shared CPUs in pin_driver before server boot",
-  "original_log": "build/gate-run.2osb0r/jobs/differ-equivalence/differ/mode-equivalence-28.log",
-  "self_test": "mode-equivalence-pin-final.log",
-  "production_changes": false,
-  "rerun": "io_uring through differ-equivalence; epoll ongoing matrix will read the corrected harness",
-  "future_final_checks": "Rerun gates_test.py after queues: already-running finish interpreter predates this added stage"
-}

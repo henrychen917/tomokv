@@ -114,7 +114,7 @@ class RunnerTests(unittest.TestCase):
         rows = registry()
         self.assertEqual(len(rows), 58)
         self.assertEqual(DEFAULT_HITS, 20)
-        mechanisms = json.loads((ROOT / 'docs/flakeaudit2/triage.json').read_text())['mechanisms']
+        mechanisms = json.loads((ROOT / 'tests/fixtures/lottery-mechanisms.json').read_text())['mechanisms']
         expected = {str(i) for m in mechanisms if m['category'] == 'B' for i in m['rows']}
         self.assertEqual({r['id'] for r in rows}, expected)
         self.assertEqual({r['id'] for r in rows if r['family'] == 'multi_exec'},

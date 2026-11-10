@@ -1,4 +1,0 @@
-/home/user/Projects/cx-clientcompat/build/clientcompat/counts/trace /home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/PRE-db0/probe /home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/PRE-db0/elf.ranges 8a0850 8a0860 000000000002bb20 SET 1s 1 0 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope
-COUNT 926

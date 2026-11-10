@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=atomwake-live-2s-uring; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-ok	66.910000	atomwake lone-IO credit wake (2s, uring)

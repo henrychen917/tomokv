@@ -1,4 +1,0 @@
-RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=1063, fixture=1107, source declarations=1113
-Missing fixture labels: 'rlfix5 monotonic (1s)' (x1); 'rlfix5 monotonic (2s)' (x1); 'rlfix5 no-yes (1s)' (x1); 'rlfix5 no-yes (2s)' (x1); 'rlfix5 yes-no (1s)' (x1); 'rlfix5 yes-no (2s)' (x1)
-Extra fixture labels: none
-Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.

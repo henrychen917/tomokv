@@ -1,5 +1,0 @@
-{"mode": "redis", "engine": "oracle", "result": {"members": 8000000, "calibrated_seconds": 6.22, "waited": [6.02, 6.02], "acknowledged": 20021}, "passed": true}
-{"mode": "1s", "engine": "uring", "result": {"members": 400000, "calibrated_seconds": 8.49, "waited": [8.22, 8.67], "acknowledged": 20040}, "passed": true}
-{"mode": "1s", "engine": "epoll", "result": {"members": 400000, "calibrated_seconds": 8.6, "waited": [8.37, 8.63], "acknowledged": 20024}, "passed": true}
-{"mode": "2s", "engine": "uring", "result": {"members": 400000, "calibrated_seconds": 8.55, "waited": [8.28, 8.78], "acknowledged": 20043}, "passed": true}
-{"mode": "2s", "engine": "epoll", "result": {"members": 400000, "calibrated_seconds": 8.56, "waited": [8.32, 8.67], "acknowledged": 20040}, "passed": true}

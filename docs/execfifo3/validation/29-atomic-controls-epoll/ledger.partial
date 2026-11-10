@@ -1,4 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=atomic_floor; NOT A RECEIPT
-ok	0.040000	release build (+footprint locks)
-ok	0.010000	tripwire arm/disarm round-trip
-ok	0.080000	pipelined same-conn program order (400 rolls)

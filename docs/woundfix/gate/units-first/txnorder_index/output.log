@@ -1,4 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; txnorder index oracle
-  txnorder index oracle                                ok
-  row budget: 900s; median=-s; no-history-conservative-default; txnorder index complexity
-  txnorder index complexity                            ok

@@ -1,7 +1,0 @@
-1s default: PASS (restart, save=True, snapshot=13d90c54fa2a1b855255720440d85641ec6fbcf668510cd0acca768307cd8fd2)
-1s nosave: PASS (restart, save=False, snapshot=37c21897641b801a50e00311d3971e80be751912f6f6d8174b916fcaed5fa101)
-1s save-override: PASS (restart, save=True, snapshot=d9dbc7ad400f69c87ba2370bd0f41411165772cb3b232e64a40dc7a925585e67)
-1s save-off: PASS (restart, save=False, snapshot=absent)
-1s config-off: PASS (restart, save=False, snapshot=absent)
-1s config-on: PASS (restart, save=True, snapshot=657f8354eea4400b86067849073439deec7771ba7e7a6d57da6a7f5f8f8485e8)
-1s save-failure: PASS (error and continued service)

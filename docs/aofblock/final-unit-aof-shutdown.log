@@ -1,6 +1,0 @@
-shutdown: waiting for final AOF drain/sync bound_ms=10000
-shutsave join AOF final sync: PASS (8 s virtual completion, old bound 2700 ms)
-
-real	0m0.405s
-user	0m0.001s
-sys	0m0.003s

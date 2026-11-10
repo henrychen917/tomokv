@@ -1,2 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=racefix_counters; NOT A RECEIPT
-ok	2.930000	INFO command/socket counters (TSan, both modes)

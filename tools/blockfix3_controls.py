@@ -48,7 +48,7 @@ def build():
         (dest / 'receipt.json').write_text(json.dumps(record, indent=2) + '\n')
         records[arm] = record
         if (dest / 'source').exists(): shutil.rmtree(dest / 'source')
-    (ROOT / 'docs/blockfix3/controls.json').write_text(json.dumps(records, indent=2) + '\n')
+    (OUT / 'controls.json').write_text(json.dumps(records, indent=2) + '\n')
 
 
 def check(args):

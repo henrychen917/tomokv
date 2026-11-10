@@ -1,8 +1,0 @@
-{
-  "job": "blockfix2",
-  "run": "build/gate-run.rwGpt8",
-  "result": "6 PASS / 1 FAIL",
-  "failure": "BLOCK-SERVE-REFUSED-DROP",
-  "reason": "Gate resolves blockfix2-unit and blockfix2-db0-unit beside an alternate candidate. Both root targets were built, but their POST-directory links were missing.",
-  "correction": "Link all rebuilt production and blockfix unit targets beside the new sealed POST before any replacement jobs."
-}

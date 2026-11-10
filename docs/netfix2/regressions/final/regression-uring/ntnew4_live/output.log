@@ -1,6 +1,0 @@
-  row budget: 900s; median=1.18s; correctness-plan-fallback; NT-new-4 command clock after dequeue (2s)
-  NT-new-4 command clock after dequeue (2s)            ok
-  row budget: 900s; median=1.2s; correctness-plan-fallback; NT-new-4 command clock after dequeue (1s)
-  NT-new-4 command clock after dequeue (1s)            ok
-  row budget: 900s; median=1.19s; correctness-plan-fallback; NT-new-4 command clock after dequeue (2s, epoll)
-  NT-new-4 command clock after dequeue (2s, epoll)     ok

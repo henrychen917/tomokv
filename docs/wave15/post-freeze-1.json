@@ -1,8 +1,0 @@
-{
-  "source_commit": "1babe0d58a942770ebb3aa76fd0fefe411c6fb9e",
-  "path": "/home/user/Projects/cx-wave15/build/wave15/POST-1babe0d58a",
-  "sha256": "969c15dc772bc45f06af218a1749e6eb94523965d5f69e8589a5e81a91b5a2df",
-  "bytes": 12526242,
-  "accepted": false,
-  "reason": "Premature copy while final build was still finishing; never used for correctness servers. Superseded by post-freeze.json."
-}

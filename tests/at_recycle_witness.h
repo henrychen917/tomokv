@@ -1,4 +1,4 @@
-// UNScored only. tools/archive/tools/at_recycle_artifacts.py injects this into a build/ source mirror.
+// UNScored only. `git show v1.0:tools/archive/tools/at_recycle_artifacts.py` injects this into a build/ source mirror.
 // Production sources/binaries do not include this file, allocate these counters or sample them.
 #pragma once
 #define TOMO_AT_RECYCLE_WITNESS_ENABLED

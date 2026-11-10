@@ -1,3 +1,0 @@
-/home/user/Projects/cx-wave14/build/wave14/counts/trace /home/user/Projects/cx-wave14/build/wave14/counts/scopes/pre-ordinary-db0/probe /home/user/Projects/cx-wave14/build/wave14/counts/scopes/pre-ordinary-db0/lua.ranges 8aae20 8aae30 000000000002bb20 RPUSH 1s 32 1 -1
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS bounded production command scope

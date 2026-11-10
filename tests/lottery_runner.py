@@ -18,7 +18,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HITS = 20  # Owner policy; docs/lottery/constants-ledger.md, LOTTERY-K.
+DEFAULT_HITS = 20  # Owner policy; `git show v1.0:docs/lottery/constants-ledger.md`, LOTTERY-K.
 
 
 def upper_bound(hits, failures=0, confidence=.95):

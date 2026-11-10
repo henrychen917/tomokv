@@ -1,2 +1,0 @@
-FAIL b AssertionError('missing counter atomic_txn_attempts')
-PASS armed

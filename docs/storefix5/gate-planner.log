@@ -1,1 +1,0 @@
-gate resources: CPU 16 overlaps --server-cores and --load-cores

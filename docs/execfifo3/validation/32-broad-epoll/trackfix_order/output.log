@@ -1,2 +1,0 @@
-  row budget: 900s; median=220.39s; correctness-plan-fallback; tracking delayed-write order vs Redis 7.4
-  tracking delayed-write order vs Redis 7.4            ok

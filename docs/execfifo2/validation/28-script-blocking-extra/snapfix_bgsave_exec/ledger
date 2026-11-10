@@ -1,1 +1,0 @@
-ok	55.580000	snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)

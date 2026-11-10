@@ -17,7 +17,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = 'MEASURE-REQUEST-nullpublish3.md'
+REPORT = 'tests/fixtures/nullpublish-campaign.md'
 FREEZE = 'build/nullpublish-freeze.json'
 MANIFEST = 'build/nullpublish-campaign.sha256'
 SCRIPT = 'build/nullpublish-campaign.sh'

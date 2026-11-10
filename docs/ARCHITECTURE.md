@@ -30,7 +30,7 @@ and runtime `FLIP`. Both modes retain cross-thread owner dispatch. The optional
 local-read lane runs in both modes: the 2s entry selects a dedicated runtime
 whose IO threads remain shard-less (`src/main.cc:325`, `src/core/rl2s.cc:97`,
 `:213`). See
-[CONFIGURATION.md](CONFIGURATION.md#threads-placement-and-execution).
+[configuration.md](configuration.md#threads-placement-and-execution).
 
 The shipped posture is `thread-mode 2s`, `read-local 0`,
 `key-lb 1`, `client-lb 1`, and `reorder 0` (`src/core/config.h:306`, `:329`,
@@ -263,9 +263,9 @@ Production takes one local attempt: failed validation clears the private reply
 and unconditionally jumps to owner demotion before the retained retry body
 (`src/core/ex_loop.h:1282`). The two-attempt loop remains a measurement/test
 control, not the shipped retry behavior. Per-operation sequence validation
-still exists; its relationship to the no-seqlock law is recorded in
-[FINDINGS](FINDINGS.md#reader-contract). No universal progress claim follows
-from these checks.
+still exists. This is a remaining concern against the project contract banning
+seqlocks on the per-operation path; removing retries alone does not establish
+compliance with that contract. No universal progress claim follows from these checks.
 
 ## Persistence and side effects
 

@@ -1,1 +1,0 @@
-Focused PRE control from gate Vd2gz7, preserved in full. The runtime summaries bind the actual PRE executable SHA (2e07ea8a...), independently of the old survey binary SHA in the manifest. The 2s SUBSCRIBE-after-UNSUBSCRIBE assertion fails (PUBLISH returns 1, expected 0); the PUNSUBSCRIBE assertion passes in this control. No claim is made that both failures were reproduced here.
